@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invest Hauser — Construção &amp; Incorporação</title>
+  <meta name="description" content="Construção de alto padrão para quem edifica com visão. Precisão, qualidade e parceria em cada projeto.">
+
+  <!-- Barlow — substituto gratuito mais próximo do TWK Lausanne -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300&display=swap" rel="stylesheet">
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --color-bg-primary:    #FAFAF7;
+      --color-bg-secondary:  #F0EDE5;
+      --color-bg-surface:    #FFFFFF;
+
+      --color-text-primary:  #1A1C1E;
+      --color-text-secondary:#6B6A64;
+      --color-text-muted:    #A8A69E;
+
+      --color-border:        rgba(26,28,30,0.08);
+      --color-border-hover:  rgba(26,28,30,0.16);
+
+      --color-on-media:      #FFFFFF;
+      --color-on-media-mute: rgba(255,255,255,0.7);
+
+      --font-primary: 'Barlow', sans-serif;
+
+      --section-v: 120px;
+      --section-h: 60px;
+
+      --ease-expo:    cubic-bezier(0.16,1,0.3,1);
+      --ease-in-out:  cubic-bezier(0.65,0,0.35,1);
+
+      --tr-fast: 0.25s var(--ease-expo);
+      --tr-med:  0.5s  var(--ease-expo);
+      --tr-slow: 0.8s  var(--ease-expo);
+    }
+
+    /* ============================================================
+       RESET
+    ============================================================ */
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+    html { font-size:16px; scroll-behavior:smooth; }
+
+    body {
+      background-color: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      font-family: var(--font-primary);
+      font-weight: 300;
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    img, video { display:block; max-width:100%; height:auto; }
+    a { color:inherit; text-decoration:none; }
+    button { font-family:inherit; }
+
+    /* ============================================================
+       CUSTOM CURSOR
+    ============================================================ */
+    .cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 10px; height: 10px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: width var(--tr-fast), height var(--tr-fast), opacity 0.3s;
+      mix-blend-mode: difference;
+      will-change: left, top;
+    }
+
+    .cursor--hover {
+      width: 42px;
+      height: 42px;
+    }
+
+    /* ============================================================
+       LOADER
+    ============================================================ */
+    .loader {
+      position: fixed;
+      inset: 0;
+      background: var(--color-bg-primary);
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loader__inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loader__label {
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+
+    .loader__bar {
+      width: 0;
+      height: 1px;
+      background: var(--color-text-secondary);
+    }
+
+    /* ============================================================
+       PLACEHOLDERS DE MÍDIA
+       ─────────────────────────────────────────────────────────────
+       Para substituir: apague o <div class="placeholder"> e insira
+       o seu <img> ou <video autoplay muted loop playsinline>.
+    ============================================================ */
+    .placeholder {
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .placeholder--video {
+      background: #EDF3F8;
+      border: 1.5px dashed rgba(50,120,200,0.35);
+    }
+
+    .placeholder--image {
+      background: #F0EDE5;
+      border: 1.5px dashed rgba(26,28,30,0.12);
+    }
+
+    .placeholder__icon {
+      width: 44px;
+      height: 44px;
+      opacity: 0.35;
+    }
+
+    .placeholder__label {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .placeholder--video   .placeholder__label { color: rgba(50,120,200,0.7); }
+    .placeholder--image   .placeholder__label { color: rgba(26,28,30,0.5); }
+
+    .placeholder__sublabel {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      opacity: 0.6;
+    }
+
+    /* ============================================================
+       NAVIGATION ISLAND
+    ============================================================ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding-top: 24px;
+      pointer-events: none;
+    }
+
+    .nav__island {
+      display: flex;
+      align-items: center;
+      background: rgba(250,250,247,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 0.5px solid var(--color-border-hover);
+      border-radius: 100px;
+      padding: 8px 8px 8px 22px;
+      pointer-events: all;
+      transition: transform var(--tr-med), opacity var(--tr-med), background var(--tr-med);
+      white-space: nowrap;
+      max-width: calc(100vw - 48px);
+    }
+
+    .nav__island--scrolled-down {
+      transform: translateY(-8px);
+    }
+
+    .nav__island--bottom {
+      background: rgba(250,250,247,0.96);
+    }
+
+    .nav__logo {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      margin-right: 32px;
+    }
+
+    .nav__links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav__link {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.02em;
+      transition: color var(--tr-fast);
+      cursor: pointer;
+    }
+
+    .nav__link:hover,
+    .nav__link--active { color: var(--color-text-primary); }
+
+    .nav__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-text-primary);
+      color: var(--color-bg-primary);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 10px 20px;
+      border-radius: 100px;
+      margin-left: 24px;
+      transition: background var(--tr-fast), color var(--tr-fast);
+      cursor: pointer;
+    }
+
+    .nav__cta:hover { background: #2d2f31; }
+
+    .nav__cta-icon {
+      width: 10px;
+      height: 10px;
+    }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    .hero {
+      position: relative;
+      height: 100vh;
+      min-height: 640px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .hero__media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero__media video,
+    .hero__media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(11,16,18,0.88) 0%,
+        rgba(11,16,18,0.28) 50%,
+        rgba(11,16,18,0.08) 100%
+      );
+      z-index: 1;
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding: 0 var(--section-h) 88px;
+    }
+
+    .hero__eyebrow {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-on-media-mute);
+      margin-bottom: 20px;
+    }
+
+    .hero__title {
+      font-size: clamp(48px, 7vw, 96px);
+      font-weight: 200;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      max-width: 820px;
+      color: var(--color-on-media);
+    }
+
+    .hero__scroll {
+      position: absolute;
+      right: var(--section-h);
+      bottom: 88px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero__scroll-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-on-media-mute);
+      writing-mode: vertical-rl;
+    }
+
+    .hero__scroll-line {
+      width: 1px;
+      height: 48px;
+      background: var(--color-on-media-mute);
+      transform-origin: top;
+      animation: scrollLine 2.2s var(--ease-in-out) infinite;
+    }
+
+    @keyframes scrollLine {
+      0%   { transform: scaleY(0); opacity:0; transform-origin:top; }
+      45%  { transform: scaleY(1); opacity:1; transform-origin:top; }
+      46%  { transform-origin: bottom; }
+      100% { transform: scaleY(0); opacity:0; transform-origin:bottom; }
+    }
+
+    /* ============================================================
+       SPECIALISTS (intro)
+    ============================================================ */
+    .specialists {
+      padding: var(--section-v) var(--section-h);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .specialists__label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .specialists__text {
+      font-size: clamp(24px, 2.8vw, 38px);
+      font-weight: 200;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+    }
+
+    .specialists__text strong { font-weight: 400; }
+
+    .specialists__media {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    .specialists__media img,
+    .specialists__media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--tr-slow);
+    }
+
+    .specialists__media:hover img,
+    .specialists__media:hover video { transform: scale(1.04); }
+
+    /* ============================================================
+       ABOUT
+    ============================================================ */
+    .about {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+
+    .about__copy {}
+
+    .about__label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .about__title {
+      font-size: clamp(26px, 2.8vw, 40px);
+      font-weight: 200;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+    }
+
+    .about__body {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+
+    .about__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      border-bottom: 0.5px solid var(--color-text-muted);
+      padding-bottom: 4px;
+      transition: color var(--tr-fast), gap var(--tr-fast), border-color var(--tr-fast);
+    }
+
+    .about__link:hover {
+      gap: 16px;
+      color: var(--color-text-secondary);
+      border-color: var(--color-text-secondary);
+    }
+
+    .about__image {
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    .about__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--tr-slow);
+    }
+
+    .about__image:hover img { transform: scale(1.04); }
+
+    /* ============================================================
+       SERVICES
+    ============================================================ */
+    .services {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+    }
+
+    .services__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 56px;
+    }
+
+    .services__heading {}
+
+    .services__label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .services__title {
+      font-size: clamp(26px, 3.2vw, 46px);
+      font-weight: 200;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      max-width: 600px;
+    }
+
+    .services__title strong { font-weight: 400; }
+
+    .services__overview-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--color-text-secondary);
+      border-bottom: 0.5px solid var(--color-text-muted);
+      padding-bottom: 4px;
+      transition: color var(--tr-fast), gap var(--tr-fast);
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    .services__overview-link:hover { color:var(--color-text-primary); gap:14px; }
+
+    .services__grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 2px;
+    }
+
+    /* --- service-card --- */
+    .service-card {
+      position: relative;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: var(--color-bg-secondary);
+      cursor: pointer;
+      display: block;
+    }
+
+    .service-card__media {
+      position: absolute;
+      inset: 0;
+    }
+
+    .service-card__media img,
+    .service-card__media .placeholder {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--tr-slow);
+    }
+
+    .service-card:hover .service-card__media img,
+    .service-card:hover .service-card__media .placeholder {
+      transform: scale(1.06);
+    }
+
+    .service-card__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(11,16,18,0.88) 0%, transparent 55%);
+    }
+
+    .service-card__content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 28px;
+    }
+
+    .service-card__title {
+      font-size: 20px;
+      font-weight: 300;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--color-on-media);
+    }
+
+    /* ============================================================
+       SHOWROOM / ESCRITÓRIO
+    ============================================================ */
+    .showroom {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .showroom__info {}
+
+    .showroom__label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .showroom__title {
+      font-size: clamp(26px, 2.8vw, 40px);
+      font-weight: 200;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 32px;
+    }
+
+    .showroom__address-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .showroom__address {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+    }
+
+    .showroom__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      border-bottom: 0.5px solid var(--color-text-muted);
+      padding-bottom: 4px;
+      margin-top: 36px;
+      transition: color var(--tr-fast), gap var(--tr-fast);
+    }
+
+    .showroom__link:hover { gap:16px; color:var(--color-text-secondary); }
+
+    .showroom__media {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    .showroom__media img,
+    .showroom__media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ============================================================
+       PROJECTS
+    ============================================================ */
+    .projects {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+    }
+
+    .projects__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 56px;
+    }
+
+    .projects__heading {}
+
+    .projects__label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .projects__title {
+      font-size: clamp(26px, 2.8vw, 40px);
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .projects__view-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--color-text-secondary);
+      border-bottom: 0.5px solid var(--color-text-muted);
+      padding-bottom: 4px;
+      transition: color var(--tr-fast), gap var(--tr-fast);
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    .projects__view-link:hover { color:var(--color-text-primary); gap:14px; }
+
+    .projects__grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 2px;
+    }
+
+    /* --- project-card --- */
+    .project-card {
+      position: relative;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: var(--color-bg-secondary);
+      cursor: pointer;
+      display: block;
+    }
+
+    .project-card__media {
+      position: absolute;
+      inset: 0;
+    }
+
+    .project-card__media img,
+    .project-card__media .placeholder {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--tr-slow);
+    }
+
+    .project-card:hover .project-card__media img { transform: scale(1.06); }
+
+    .project-card__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(11,16,18,0.85) 0%, transparent 52%);
+    }
+
+    .project-card__content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 24px;
+    }
+
+    .project-card__tags {
+      margin-bottom: 8px;
+    }
+
+    .project-card__tag {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.9;
+    }
+
+    .project-card__title {
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      color: var(--color-on-media);
+    }
+
+    /* ============================================================
+       MOOD IMAGES (dupla fullwidth)
+    ============================================================ */
+    .mood {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+
+    .mood__item {
+      aspect-ratio: 3/4;
+      overflow: hidden;
+    }
+
+    .mood__item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--tr-slow);
+    }
+
+    .mood__item:hover img { transform: scale(1.04); }
+
+    /* ============================================================
+       TESTIMONIALS
+    ============================================================ */
+    .testimonials {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+    }
+
+    .testimonials__counter {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: 48px;
+    }
+
+    .testimonials__track { position: relative; }
+
+    .testimonials__slide {
+      display: none;
+      grid-template-columns: 1fr auto;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .testimonials__slide--active { display: grid; }
+
+    .testimonials__quote {
+      font-size: clamp(20px, 2.4vw, 30px);
+      font-weight: 200;
+      font-style: italic;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+      max-width: 720px;
+    }
+
+    .testimonials__author {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .testimonials__avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--color-bg-secondary);
+    }
+
+    .testimonials__avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .testimonials__name {
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .testimonials__role {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    .testimonials__controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    .testimonials__btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 0.5px solid var(--color-border-hover);
+      background: transparent;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--tr-fast), color var(--tr-fast), border-color var(--tr-fast);
+    }
+
+    .testimonials__btn:hover {
+      background: var(--color-text-primary);
+      color: var(--color-bg-primary);
+      border-color: var(--color-text-primary);
+    }
+
+    .testimonials__dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .testimonials__dot {
+      width: 20px;
+      height: 2px;
+      background: var(--color-text-muted);
+      border-radius: 1px;
+      transition: width var(--tr-fast), background var(--tr-fast);
+      cursor: pointer;
+    }
+
+    .testimonials__dot--active {
+      background: var(--color-text-primary);
+      width: 32px;
+    }
+
+    /* ============================================================
+       CTA FINAL
+    ============================================================ */
+    .cta {
+      padding: var(--section-v) var(--section-h);
+      border-top: 0.5px solid var(--color-border);
+      text-align: center;
+    }
+
+    .cta__eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .cta__title {
+      font-size: clamp(36px, 5.5vw, 72px);
+      font-weight: 200;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin-bottom: 20px;
+    }
+
+    .cta__subtitle {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--color-text-secondary);
+      margin-bottom: 52px;
+    }
+
+    .cta__buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       BUTTON
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      border: none;
+      cursor: pointer;
+      transition: background var(--tr-fast), color var(--tr-fast), border-color var(--tr-fast);
+    }
+
+    .btn--primary {
+      background: var(--color-text-primary);
+      color: var(--color-bg-primary);
+    }
+
+    .btn--primary:hover { background: #2d2f31; }
+
+    .btn--outline {
+      background: transparent;
+      color: var(--color-text-primary);
+      border: 0.5px solid var(--color-border-hover);
+    }
+
+    .btn--outline:hover { border-color: var(--color-text-secondary); color:var(--color-text-secondary); }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+      border-top: 0.5px solid var(--color-border);
+    }
+
+    .footer__image {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/7;
+      overflow: hidden;
+    }
+
+    .footer__image img,
+    .footer__image .placeholder {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .footer__image-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(11,16,18,0.48);
+    }
+
+    .footer__bottom {
+      padding: 40px var(--section-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer__copy {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    .footer__social {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer__social-link {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      transition: color var(--tr-fast);
+    }
+
+    .footer__social-link:hover { color: var(--color-text-secondary); }
+
+    .footer__legal {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer__legal-link {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      transition: color var(--tr-fast);
+    }
+
+    .footer__legal-link:hover { color: var(--color-text-secondary); }
+
+    /* ============================================================
+       REVEAL (estado inicial — GSAP anima para o estado visível)
+    ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+
+    /* ============================================================
+       RESPONSIVO
+    ============================================================ */
+    @media (max-width: 1024px) {
+      :root { --section-v:80px; --section-h:36px; }
+
+      .specialists,
+      .about,
+      .showroom { grid-template-columns:1fr; gap:48px; }
+
+      .services__grid,
+      .projects__grid { grid-template-columns:repeat(2,1fr); }
+
+      .services__header,
+      .projects__header { flex-direction:column; align-items:flex-start; gap:24px; }
+    }
+
+    @media (max-width: 640px) {
+      :root { --section-v:60px; --section-h:24px; }
+
+      .nav__links { display:none; }
+
+      .hero__title { font-size:36px; }
+
+      .services__grid,
+      .projects__grid { grid-template-columns:1fr 1fr; }
+
+      .testimonials__slide {
+        grid-template-columns:1fr;
+        gap:36px;
+      }
+
+      .testimonials__author { flex-direction:row; text-align:left; }
+
+      .mood { grid-template-columns:1fr; }
+
+      .footer__bottom { flex-direction:column; align-items:flex-start; gap:16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div class="cursor" id="js-cursor" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       LOADER
+  ============================================================ -->
+  <div class="loader" id="js-loader" aria-hidden="true">
+    <div class="loader__inner">
+      <span class="loader__label">Invest Hauser</span>
+      <div class="loader__bar" id="js-loader-bar"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       NAVIGATION ISLAND
+  ============================================================ -->
+  <nav class="nav" aria-label="Navegação principal">
+    <div class="nav__island" id="js-nav-island">
+
+      <a href="#inicio" class="nav__logo">Invest Hauser</a>
+
+      <div class="nav__links">
+        <a href="#sobre"    class="nav__link nav__link--active">Sobre</a>
+        <a href="#servicos" class="nav__link">Serviços</a>
+        <a href="#projetos" class="nav__link">Projetos</a>
+        <a href="#contato"  class="nav__link">Contato</a>
+      </div>
+
+      <a href="#contato" class="nav__cta">
+        Orçamento
+        <svg class="nav__cta-icon" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </a>
+
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <section class="hero" id="inicio" aria-label="Seção principal">
+
+    <div class="hero__media">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  VÍDEO HERO — apague o <div class="placeholder"> e cole ║
+      ║  o código abaixo no lugar:                              ║
+      ║                                                          ║
+      ║  <video autoplay muted loop playsinline                  ║
+      ║         poster="thumb-hero.jpg">                         ║
+      ║    <source src="videos/hero.mp4" type="video/mp4">       ║
+      ║  </video>                                                ║
+      ║                                                          ║
+      ║  Resolução: 1920×1080 · MP4 H.264 · máx. 20MB          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--video">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="6" y="10" width="36" height="28" rx="3" stroke="rgba(50,120,200,0.55)" stroke-width="1.5"/>
+          <path d="M20 18l10 6-10 6V18z" stroke="rgba(50,120,200,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="placeholder__label">Vídeo — Hero principal</span>
+        <span class="placeholder__sublabel">1920×1080 · MP4 · mudo · loop</span>
+      </div>
+    </div>
+
+    <div class="hero__overlay" aria-hidden="true"></div>
+
+    <div class="hero__content">
+      <p class="hero__eyebrow reveal">Construção &amp; Incorporação</p>
+      <h1 class="hero__title reveal">
+        Construção com<br>
+        precisão. Espaços<br>
+        com propósito.
+      </h1>
+    </div>
+
+    <div class="hero__scroll" aria-hidden="true">
+      <span class="hero__scroll-label">Explorar</span>
+      <div class="hero__scroll-line"></div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       SPECIALISTS
+  ============================================================ -->
+  <section class="specialists" id="sobre" aria-labelledby="specialists-heading">
+
+    <div class="specialists__copy">
+      <p class="specialists__label reveal">Especialistas em construção</p>
+      <p class="specialists__text reveal" id="specialists-heading">
+        Desenvolvemos e entregamos
+        <strong>empreendimentos de alto padrão</strong>
+        para quem constrói com visão. Cada projeto reflete nosso
+        compromisso com precisão, qualidade e parceria.
+      </p>
+    </div>
+
+    <div class="specialists__media reveal">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  IMAGEM ou VÍDEO — seção introdutória                   ║
+      ║  <img src="fotos/intro.jpg" alt="Obra Hauser">          ║
+      ║  Proporção: 4:3                                          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--image">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
+          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
+          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.22)" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="placeholder__label">Imagem — Introdução</span>
+        <span class="placeholder__sublabel">4:3 · AVIF / WebP / JPG</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       ABOUT
+  ============================================================ -->
+  <section class="about" aria-labelledby="about-heading">
+
+    <div class="about__copy">
+      <p class="about__label reveal">Sobre a Invest Hauser</p>
+      <h2 class="about__title reveal" id="about-heading">
+        Trazemos a arquitetura à vida através de
+        técnica e inovação.
+      </h2>
+      <p class="about__body reveal">
+        Confiada por incorporadores e arquitetos que exigem precisão, beleza e cuidado em cada etapa. Da concepção à entrega das chaves, somos o parceiro técnico que garante que sua visão seja executada com integridade e excelência.
+      </p>
+      <a href="#sobre" class="about__link reveal">
+        Quem somos
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="about__image reveal">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  IMAGEM — Sobre (vertical / retrato)                    ║
+      ║  <img src="fotos/equipe.jpg" alt="Equipe Invest Hauser">║
+      ║  Proporção: 3:4                                          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--image" style="height:100%;min-height:480px">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
+          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
+          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.22)" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="placeholder__label">Imagem — Sobre (vertical)</span>
+        <span class="placeholder__sublabel">3:4 · retrato ou ambiente</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       SERVICES
+  ============================================================ -->
+  <section class="services" id="servicos" aria-labelledby="services-heading">
+
+    <div class="services__header">
+      <div class="services__heading">
+        <p class="services__label reveal">Coleção de serviços</p>
+        <h2 class="services__title reveal" id="services-heading">
+          Nossa <strong>coleção de serviços</strong> é definida por
+          excelência técnica e qualidade duradoura.
+        </h2>
+      </div>
+      <a href="#servicos" class="services__overview-link reveal">
+        Ver todos os serviços
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="services__grid">
+
+      <!-- Serviço 1 -->
+      <a href="#servicos" class="service-card" aria-label="Construção Civil">
+        <div class="service-card__media">
+          <!--
+          Substituir: <img src="fotos/construcao-civil.jpg" alt="Construção Civil">
+          -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Construção Civil</span>
+          </div>
+        </div>
+        <div class="service-card__overlay" aria-hidden="true"></div>
+        <div class="service-card__content">
+          <h3 class="service-card__title">Construção Civil</h3>
+        </div>
+      </a>
+
+      <!-- Serviço 2 -->
+      <a href="#servicos" class="service-card" aria-label="Retrofit e Reforma">
+        <div class="service-card__media">
+          <!-- Substituir: <img src="fotos/retrofit.jpg" alt="Retrofit"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Retrofit &amp; Reforma</span>
+          </div>
+        </div>
+        <div class="service-card__overlay" aria-hidden="true"></div>
+        <div class="service-card__content">
+          <h3 class="service-card__title">Retrofit &amp; Reforma</h3>
+        </div>
+      </a>
+
+      <!-- Serviço 3 -->
+      <a href="#servicos" class="service-card" aria-label="Estruturas">
+        <div class="service-card__media">
+          <!-- Substituir: <img src="fotos/estruturas.jpg" alt="Estruturas"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Estruturas</span>
+          </div>
+        </div>
+        <div class="service-card__overlay" aria-hidden="true"></div>
+        <div class="service-card__content">
+          <h3 class="service-card__title">Estruturas</h3>
+        </div>
+      </a>
+
+      <!-- Serviço 4 -->
+      <a href="#servicos" class="service-card" aria-label="Acabamentos Premium">
+        <div class="service-card__media">
+          <!-- Substituir: <img src="fotos/acabamentos.jpg" alt="Acabamentos"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Acabamentos Premium</span>
+          </div>
+        </div>
+        <div class="service-card__overlay" aria-hidden="true"></div>
+        <div class="service-card__content">
+          <h3 class="service-card__title">Acabamentos Premium</h3>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOWROOM / ESCRITÓRIO
+  ============================================================ -->
+  <section class="showroom" aria-labelledby="showroom-heading">
+
+    <div class="showroom__info">
+      <p class="showroom__label reveal">Onde a precisão encontra a criatividade.</p>
+      <h2 class="showroom__title reveal" id="showroom-heading">
+        Escritório &amp;<br>Atendimento
+      </h2>
+      <p class="showroom__address-label">Endereço</p>
+      <address class="showroom__address reveal">
+        <!--  ← Substitua pelo endereço real  -->
+        Av. Paulista, 1000 · Sala 42<br>
+        São Paulo · SP · Brasil
+      </address>
+      <a href="#contato" class="showroom__link reveal">
+        Agendar visita
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="showroom__media reveal">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  VÍDEO ou IMAGEM — Escritório                           ║
+      ║  <video autoplay muted loop playsinline>                 ║
+      ║    <source src="videos/escritorio.mp4" type="video/mp4"> ║
+      ║  </video>                                                ║
+      ║  Proporção: 4:3                                          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--video">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="6" y="10" width="36" height="28" rx="3" stroke="rgba(50,120,200,0.55)" stroke-width="1.5"/>
+          <path d="M20 18l10 6-10 6V18z" stroke="rgba(50,120,200,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="placeholder__label">Vídeo — Escritório / Showroom</span>
+        <span class="placeholder__sublabel">4:3 · MP4 · loop</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       FEATURED PROJECTS
+  ============================================================ -->
+  <section class="projects" id="projetos" aria-labelledby="projects-heading">
+
+    <div class="projects__header">
+      <div class="projects__heading">
+        <p class="projects__label reveal">Projetos em destaque</p>
+        <h2 class="projects__title reveal" id="projects-heading">
+          Cada projeto conta<br>uma história de precisão.
+        </h2>
+      </div>
+      <a href="#projetos" class="projects__view-link reveal">
+        Ver todos os projetos
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="projects__grid">
+
+      <!-- Projeto 1 -->
+      <a href="#projetos" class="project-card" aria-label="Projeto 01">
+        <div class="project-card__media">
+          <!-- Substituir: <img src="fotos/projeto-01.jpg" alt="Nome do Projeto 01"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Projeto 01</span>
+          </div>
+        </div>
+        <div class="project-card__overlay" aria-hidden="true"></div>
+        <div class="project-card__content">
+          <div class="project-card__tags">
+            <span class="project-card__tag">Residencial</span>
+            <span class="project-card__tag">Alto Padrão</span>
+          </div>
+          <h3 class="project-card__title">Nome do Projeto 01</h3>
+        </div>
+      </a>
+
+      <!-- Projeto 2 -->
+      <a href="#projetos" class="project-card" aria-label="Projeto 02">
+        <div class="project-card__media">
+          <!-- Substituir: <img src="fotos/projeto-02.jpg" alt="Nome do Projeto 02"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Projeto 02</span>
+          </div>
+        </div>
+        <div class="project-card__overlay" aria-hidden="true"></div>
+        <div class="project-card__content">
+          <div class="project-card__tags">
+            <span class="project-card__tag">Comercial</span>
+          </div>
+          <h3 class="project-card__title">Nome do Projeto 02</h3>
+        </div>
+      </a>
+
+      <!-- Projeto 3 -->
+      <a href="#projetos" class="project-card" aria-label="Projeto 03">
+        <div class="project-card__media">
+          <!-- Substituir: <img src="fotos/projeto-03.jpg" alt="Nome do Projeto 03"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Projeto 03</span>
+          </div>
+        </div>
+        <div class="project-card__overlay" aria-hidden="true"></div>
+        <div class="project-card__content">
+          <div class="project-card__tags">
+            <span class="project-card__tag">Retrofit</span>
+          </div>
+          <h3 class="project-card__title">Nome do Projeto 03</h3>
+        </div>
+      </a>
+
+      <!-- Projeto 4 -->
+      <a href="#projetos" class="project-card" aria-label="Projeto 04">
+        <div class="project-card__media">
+          <!-- Substituir: <img src="fotos/projeto-04.jpg" alt="Nome do Projeto 04"> -->
+          <div class="placeholder placeholder--image">
+            <span class="placeholder__label">Img — Projeto 04</span>
+          </div>
+        </div>
+        <div class="project-card__overlay" aria-hidden="true"></div>
+        <div class="project-card__content">
+          <div class="project-card__tags">
+            <span class="project-card__tag">Estrutural</span>
+          </div>
+          <h3 class="project-card__title">Nome do Projeto 04</h3>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       MOOD IMAGES (dupla fullwidth — igual ao fluid.glass)
+  ============================================================ -->
+  <div class="mood" aria-hidden="true">
+    <div class="mood__item">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  IMAGEM MOOD 01 — ambiência / detalhe                  ║
+      ║  <img src="fotos/mood-01.jpg" alt="">                   ║
+      ║  Proporção: 3:4                                          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--image" style="height:100%;min-height:520px">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
+        </svg>
+        <span class="placeholder__label">Imagem mood 01</span>
+        <span class="placeholder__sublabel">3:4 · detalhe de obra ou material</span>
+      </div>
+    </div>
+    <div class="mood__item">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  IMAGEM MOOD 02 — ambiência / detalhe                  ║
+      ║  <img src="fotos/mood-02.jpg" alt="">                   ║
+      ║  Proporção: 3:4                                          ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--image" style="height:100%;min-height:520px">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
+        </svg>
+        <span class="placeholder__label">Imagem mood 02</span>
+        <span class="placeholder__sublabel">3:4 · detalhe de obra ou material</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TESTIMONIALS
+  ============================================================ -->
+  <section class="testimonials" aria-label="Depoimentos de clientes">
+
+    <p class="testimonials__counter" id="js-counter" aria-live="polite">01 / 03</p>
+
+    <div class="testimonials__track" id="js-track">
+
+      <div class="testimonials__slide testimonials__slide--active">
+        <blockquote class="testimonials__quote">
+          "Serviço impecável do início ao fim. A Invest Hauser entregou nosso empreendimento no prazo e com acabamento muito acima do esperado."
+        </blockquote>
+        <div class="testimonials__author">
+          <div class="testimonials__avatar">
+            <!--
+            Substituir por foto real:
+            <img src="fotos/cliente-01.jpg" alt="Ricardo Almeida">
+            -->
+            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
+              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
+            </div>
+          </div>
+          <div>
+            <p class="testimonials__name">Ricardo Almeida</p>
+            <p class="testimonials__role">Incorporador · Grupo Almeida</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonials__slide">
+        <blockquote class="testimonials__quote">
+          "A capacidade técnica e o comprometimento da equipe nos deram total tranquilidade durante toda a obra. Parceria que recomendamos."
+        </blockquote>
+        <div class="testimonials__author">
+          <div class="testimonials__avatar">
+            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
+              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
+            </div>
+          </div>
+          <div>
+            <p class="testimonials__name">Fernanda Costa</p>
+            <p class="testimonials__role">Arquiteta · FC Arquitetura</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonials__slide">
+        <blockquote class="testimonials__quote">
+          "Parceria sólida, comunicação exemplar e resultado de altíssimo nível. Recomendo sem reservas para qualquer projeto de porte."
+        </blockquote>
+        <div class="testimonials__author">
+          <div class="testimonials__avatar">
+            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
+              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
+            </div>
+          </div>
+          <div>
+            <p class="testimonials__name">Marcos Vieira</p>
+            <p class="testimonials__role">Proprietário</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="testimonials__controls">
+      <button class="testimonials__btn" id="js-prev" aria-label="Depoimento anterior">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M13 5H1M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="testimonials__dots" id="js-dots" role="tablist" aria-label="Selecionar depoimento">
+        <div class="testimonials__dot testimonials__dot--active" data-index="0" role="tab" aria-selected="true"  tabindex="0"></div>
+        <div class="testimonials__dot" data-index="1" role="tab" aria-selected="false" tabindex="0"></div>
+        <div class="testimonials__dot" data-index="2" role="tab" aria-selected="false" tabindex="0"></div>
+      </div>
+      <button class="testimonials__btn" id="js-next" aria-label="Próximo depoimento">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       CTA FINAL
+  ============================================================ -->
+  <section class="cta" id="contato" aria-labelledby="cta-heading">
+    <p class="cta__eyebrow reveal">Onde visão encontra execução</p>
+    <h2 class="cta__title reveal" id="cta-heading">
+      Todo grande projeto<br>
+      começa com uma conversa.
+    </h2>
+    <p class="cta__subtitle reveal">Conte-nos sobre sua visão. Nós entregamos.</p>
+    <div class="cta__buttons reveal">
+      <a href="#sobre" class="btn btn--primary">
+        Nossa abordagem
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </a>
+      <a href="mailto:contato@investhauser.com.br" class="btn btn--outline">
+        Entre em contato
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="footer">
+
+    <div class="footer__image">
+      <!--
+      ╔══════════════════════════════════════════════════════════╗
+      ║  IMAGEM FOOTER — fullbleed (proporção 16:7)             ║
+      ║  <img src="fotos/footer-bg.jpg" alt="">                  ║
+      ║  Sugestão: panorâmica de obra ou fachada de projeto      ║
+      ╚══════════════════════════════════════════════════════════╝
+      -->
+      <div class="placeholder placeholder--image" style="width:100%;height:100%;min-height:340px">
+        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
+          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
+          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.18)" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="placeholder__label">Imagem footer — fullbleed</span>
+        <span class="placeholder__sublabel">16:7 · panorâmica de obra ou fachada</span>
+      </div>
+      <div class="footer__image-overlay" aria-hidden="true"></div>
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__copy">©2025, Invest Hauser</p>
+      <nav class="footer__social" aria-label="Redes sociais">
+        <a href="#" class="footer__social-link">Instagram</a>
+        <a href="#" class="footer__social-link">LinkedIn</a>
+        <a href="#" class="footer__social-link">YouTube</a>
+      </nav>
+      <nav class="footer__legal" aria-label="Links legais">
+        <a href="#" class="footer__legal-link">Política de privacidade</a>
+        <a href="#" class="footer__legal-link">Termos de uso</a>
+      </nav>
+    </div>
+
+  </footer>
+
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    /* --------------------------------------------------
+       Aguarda GSAP carregar
+    -------------------------------------------------- */
+    window.addEventListener('load', function () {
+
+      /* ------------------------------------------------
+         GSAP REGISTER
+      ------------------------------------------------ */
+      gsap.registerPlugin(ScrollTrigger);
+
+      /* ------------------------------------------------
+         LOADER
+      ------------------------------------------------ */
+      var loader    = document.getElementById('js-loader');
+      var loaderBar = document.getElementById('js-loader-bar');
+
+      gsap.to(loaderBar, {
+        width: '80px',
+        duration: 0.7,
+        ease: 'power2.out',
+        onComplete: function () {
+          gsap.to(loader, {
+            autoAlpha: 0,
+            duration: 0.5,
+            delay: 0.15,
+            ease: 'power2.inOut',
+            onComplete: function () {
+              loader.style.display = 'none';
+              initAnimations();
+            }
+          });
+        }
+      });
+
+      /* ------------------------------------------------
+         CURSOR CUSTOMIZADO
+      ------------------------------------------------ */
+      var cursor = document.getElementById('js-cursor');
+      var mouseX = 0, mouseY = 0;
+      var posX   = 0, posY   = 0;
+
+      document.addEventListener('mousemove', function (e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      (function animateCursor() {
+        posX += (mouseX - posX) * 0.12;
+        posY += (mouseY - posY) * 0.12;
+        cursor.style.left = posX + 'px';
+        cursor.style.top  = posY + 'px';
+        requestAnimationFrame(animateCursor);
+      })();
+
+      document.querySelectorAll('a, button, .service-card, .project-card, .testimonials__dot').forEach(function (el) {
+        el.addEventListener('mouseenter', function () { cursor.classList.add('cursor--hover'); });
+        el.addEventListener('mouseleave', function () { cursor.classList.remove('cursor--hover'); });
+      });
+
+      /* ------------------------------------------------
+         NAVIGATION ISLAND
+      ------------------------------------------------ */
+      var navIsland  = document.getElementById('js-nav-island');
+      var navLinks   = document.querySelectorAll('.nav__link');
+
+      function onScroll() {
+        var scrollY  = window.scrollY;
+        var docH     = document.body.scrollHeight - window.innerHeight;
+        var atBottom = scrollY >= docH - 60;
+
+        navIsland.classList.toggle('nav__island--bottom', atBottom);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      /* Seção ativa na navegação */
+      var sections = document.querySelectorAll('section[id]');
+
+      var sectionObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          navLinks.forEach(function (link) {
+            link.classList.toggle(
+              'nav__link--active',
+              link.getAttribute('href') === '#' + entry.target.id
+            );
+          });
+        });
+      }, { threshold: 0.3 });
+
+      sections.forEach(function (s) { sectionObserver.observe(s); });
+
+      /* ------------------------------------------------
+         SMOOTH SCROLL
+      ------------------------------------------------ */
+      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          var target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      /* ------------------------------------------------
+         ANIMAÇÕES GSAP
+      ------------------------------------------------ */
+      function initAnimations() {
+
+        /* Hero entrance */
+        gsap.from('.hero__eyebrow', { y: 20, opacity: 0, duration: 1, ease: 'power3.out', delay: 0.1 });
+        gsap.from('.hero__title',   { y: 40, opacity: 0, duration: 1.2, ease: 'power3.out', delay: 0.3 });
+        gsap.from('.hero__scroll',  { opacity: 0, duration: 1, delay: 1.2 });
+
+        /* Scroll reveals */
+        gsap.utils.toArray('.reveal').forEach(function (el) {
+          gsap.to(el, {
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              toggleActions: 'play none none none'
+            },
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            ease: 'power3.out'
+          });
+        });
+
+        /* Services grid — stagger */
+        gsap.from('.service-card', {
+          scrollTrigger: { trigger: '.services__grid', start: 'top 80%' },
+          y: 48,
+          opacity: 0,
+          stagger: 0.1,
+          duration: 0.8,
+          ease: 'power3.out'
+        });
+
+        /* Projects grid — stagger */
+        gsap.from('.project-card', {
+          scrollTrigger: { trigger: '.projects__grid', start: 'top 80%' },
+          y: 48,
+          opacity: 0,
+          stagger: 0.1,
+          duration: 0.8,
+          ease: 'power3.out'
+        });
+
+        /* Parallax nas imagens mood */
+        gsap.utils.toArray('.mood__item img').forEach(function (img) {
+          gsap.to(img, {
+            scrollTrigger: {
+              trigger: img.closest('.mood__item'),
+              scrub: 1.5,
+              start: 'top bottom',
+              end: 'bottom top'
+            },
+            y: '12%',
+            ease: 'none'
+          });
+        });
+
+        /* Testimonials entrance */
+        gsap.from('.testimonials__counter', {
+          scrollTrigger: { trigger: '.testimonials', start: 'top 80%' },
+          opacity: 0,
+          y: 16,
+          duration: 0.8
+        });
+
+      } /* fim initAnimations */
+
+      /* ------------------------------------------------
+         TESTIMONIALS SLIDER
+      ------------------------------------------------ */
+      var slides  = document.querySelectorAll('.testimonials__slide');
+      var dots    = document.querySelectorAll('.testimonials__dot');
+      var counter = document.getElementById('js-counter');
+      var current = 0;
+      var total   = slides.length;
+
+      function goToSlide(index) {
+        slides[current].classList.remove('testimonials__slide--active');
+        dots[current].classList.remove('testimonials__dot--active');
+        dots[current].setAttribute('aria-selected', 'false');
+
+        current = (index + total) % total;
+
+        slides[current].classList.add('testimonials__slide--active');
+        dots[current].classList.add('testimonials__dot--active');
+        dots[current].setAttribute('aria-selected', 'true');
+
+        var n = String(current + 1).padStart(2, '0');
+        var t = String(total).padStart(2, '0');
+        counter.textContent = n + ' / ' + t;
+      }
+
+      document.getElementById('js-next').addEventListener('click', function () { goToSlide(current + 1); });
+      document.getElementById('js-prev').addEventListener('click', function () { goToSlide(current - 1); });
+
+      dots.forEach(function (dot, i) {
+        dot.addEventListener('click',   function () { goToSlide(i); });
+        dot.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') goToSlide(i); });
+      });
+
+      /* Auto-avance a cada 6s */
+      setInterval(function () { goToSlide(current + 1); }, 6000);
+
+    }); /* fim window.onload */
+  </script>
+
+</body>
+</html>
