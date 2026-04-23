@@ -1142,7 +1142,9 @@
       ║  Resolução: 1920×1080 · MP4 H.264 · máx. 20MB          ║
       ╚══════════════════════════════════════════════════════════╝
       -->
-      <div class="placeholder placeholder--video">
+      <video autoplay muted loop playsinline poster="thumb-hero.jpg">
+        <source src="videos/hero.mp4" type="video/mp4">
+      </video>
         <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
           <rect x="6" y="10" width="36" height="28" rx="3" stroke="rgba(50,120,200,0.55)" stroke-width="1.5"/>
           <path d="M20 18l10 6-10 6V18z" stroke="rgba(50,120,200,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
@@ -1152,7 +1154,7 @@
       </div>
     </div>
 
-    <div class="hero__overlay" aria-hidden="true"></div>
+    <div class="hero__overlay" aria-hidden="false"></div>
 
     <div class="hero__content">
       <p class="hero__eyebrow reveal">Construção &amp; Incorporação</p>
