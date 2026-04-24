@@ -125,9 +125,6 @@
 
     /* ============================================================
        PLACEHOLDERS DE MÍDIA
-       ─────────────────────────────────────────────────────────────
-       Para substituir: apague o <div class="placeholder"> e insira
-       o seu <img> ou <video autoplay muted loop playsinline>.
     ============================================================ */
     .placeholder {
       width: 100%;
@@ -274,10 +271,16 @@
       z-index: 0;
     }
 
+    /* ─── FIX RESPONSIVO ───
+       O vídeo (e a imagem de fallback) precisam cobrir
+       todo o container absoluto em qualquer viewport.
+       max-width:100% do reset genérico conflitava com
+       height:100%, por isso sobrescrevemos aqui.        */
     .hero__media video,
     .hero__media img {
       width: 100%;
       height: 100%;
+      max-width: none;   /* cancela o max-width:100% do reset */
       object-fit: cover;
     }
 
@@ -1128,37 +1131,32 @@
   ============================================================ -->
   <section class="hero" id="inicio" aria-label="Seção principal">
 
+    <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  hero__media — contém APENAS o vídeo (ou img de fallback).  ║
+    ║  Não adicione outros elementos filhos aqui.                  ║
+    ║                                                              ║
+    ║  Para substituir pelo vídeo real, troque o bloco abaixo:    ║
+    ║                                                              ║
+    ║  <video autoplay muted loop playsinline                      ║
+    ║         poster="thumb-hero.jpg">                             ║
+    ║    <source src="videos/hero.mp4" type="video/mp4">           ║
+    ║  </video>                                                    ║
+    ║                                                              ║
+    ║  Resolução recomendada: 1920×1080 · MP4 H.264 · máx. 20MB  ║
+    ╚══════════════════════════════════════════════════════════════╝
+    -->
     <div class="hero__media">
-      <!--
-      ╔══════════════════════════════════════════════════════════╗
-      ║  VÍDEO HERO — apague o <div class="placeholder"> e cole ║
-      ║  o código abaixo no lugar:                              ║
-      ║                                                          ║
-      ║  <video autoplay muted loop playsinline                  ║
-      ║         poster="thumb-hero.jpg">                         ║
-      ║    <source src="videos/hero.mp4" type="video/mp4">       ║
-      ║  </video>                                                ║
-      ║                                                          ║
-      ║  Resolução: 1920×1080 · MP4 H.264 · máx. 20MB          ║
-      ╚══════════════════════════════════════════════════════════╝
-      -->
       <video autoplay muted loop playsinline poster="thumb-hero.jpg">
         <source src="videos/hero.mp4" type="video/mp4">
       </video>
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <rect x="6" y="10" width="36" height="28" rx="3" stroke="rgba(50,120,200,0.55)" stroke-width="1.5"/>
-          <path d="M20 18l10 6-10 6V18z" stroke="rgba(50,120,200,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="placeholder__label">Vídeo — Hero principal</span>
-        <span class="placeholder__sublabel">1920×1080 · MP4 · mudo · loop</span>
-      </div>
     </div>
 
-    <div class="hero__overlay" aria-hidden="false"></div>
+    <div class="hero__overlay" aria-hidden="true"></div>
 
     <div class="hero__content">
-      <p class="hero__eyebrow reveal">Construção &amp; Incorporação</p>
-      <h1 class="hero__title reveal">
+      <p class="hero__eyebrow">Construção &amp; Incorporação</p>
+      <h1 class="hero__title">
         Construção com<br>
         precisão. Espaços<br>
         com propósito.
@@ -1277,9 +1275,7 @@
       <!-- Serviço 1 -->
       <a href="#servicos" class="service-card" aria-label="Construção Civil">
         <div class="service-card__media">
-          <!--
-          Substituir: <img src="fotos/construcao-civil.jpg" alt="Construção Civil">
-          -->
+          <!-- Substituir: <img src="fotos/construcao-civil.jpg" alt="Construção Civil"> -->
           <div class="placeholder placeholder--image">
             <span class="placeholder__label">Img — Construção Civil</span>
           </div>
@@ -1476,7 +1472,7 @@
   </section>
 
   <!-- ============================================================
-       MOOD IMAGES (dupla fullwidth — igual ao fluid.glass)
+       MOOD IMAGES (dupla fullwidth)
   ============================================================ -->
   <div class="mood" aria-hidden="true">
     <div class="mood__item">
@@ -1605,7 +1601,7 @@
   <section class="cta" id="contato" aria-labelledby="cta-heading">
     <p class="cta__eyebrow reveal">Onde visão encontra execução</p>
     <h2 class="cta__title reveal" id="cta-heading">
-      Da obra ao lucro<br>
+      Da obra ao lucro
     </h2>
     <p class="cta__subtitle reveal">Conte-nos sobre sua visão. Nós entregamos.</p>
     <div class="cta__buttons reveal">
@@ -1668,14 +1664,8 @@
        JAVASCRIPT
   ============================================================ -->
   <script>
-    /* --------------------------------------------------
-       Aguarda GSAP carregar
-    -------------------------------------------------- */
     window.addEventListener('load', function () {
 
-      /* ------------------------------------------------
-         GSAP REGISTER
-      ------------------------------------------------ */
       gsap.registerPlugin(ScrollTrigger);
 
       /* ------------------------------------------------
@@ -1737,7 +1727,6 @@
         var scrollY  = window.scrollY;
         var docH     = document.body.scrollHeight - window.innerHeight;
         var atBottom = scrollY >= docH - 60;
-
         navIsland.classList.toggle('nav__island--bottom', atBottom);
       }
 
@@ -1777,12 +1766,10 @@
       ------------------------------------------------ */
       function initAnimations() {
 
-        /* Hero entrance */
-        gsap.from('.hero__eyebrow', { y: 20, opacity: 0, duration: 1, ease: 'power3.out', delay: 0.1 });
+        gsap.from('.hero__eyebrow', { y: 20, opacity: 0, duration: 1,   ease: 'power3.out', delay: 0.1 });
         gsap.from('.hero__title',   { y: 40, opacity: 0, duration: 1.2, ease: 'power3.out', delay: 0.3 });
         gsap.from('.hero__scroll',  { opacity: 0, duration: 1, delay: 1.2 });
 
-        /* Scroll reveals */
         gsap.utils.toArray('.reveal').forEach(function (el) {
           gsap.to(el, {
             scrollTrigger: {
@@ -1797,27 +1784,16 @@
           });
         });
 
-        /* Services grid — stagger */
         gsap.from('.service-card', {
           scrollTrigger: { trigger: '.services__grid', start: 'top 80%' },
-          y: 48,
-          opacity: 0,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: 'power3.out'
+          y: 48, opacity: 0, stagger: 0.1, duration: 0.8, ease: 'power3.out'
         });
 
-        /* Projects grid — stagger */
         gsap.from('.project-card', {
           scrollTrigger: { trigger: '.projects__grid', start: 'top 80%' },
-          y: 48,
-          opacity: 0,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: 'power3.out'
+          y: 48, opacity: 0, stagger: 0.1, duration: 0.8, ease: 'power3.out'
         });
 
-        /* Parallax nas imagens mood */
         gsap.utils.toArray('.mood__item img').forEach(function (img) {
           gsap.to(img, {
             scrollTrigger: {
@@ -1831,15 +1807,12 @@
           });
         });
 
-        /* Testimonials entrance */
         gsap.from('.testimonials__counter', {
           scrollTrigger: { trigger: '.testimonials', start: 'top 80%' },
-          opacity: 0,
-          y: 16,
-          duration: 0.8
+          opacity: 0, y: 16, duration: 0.8
         });
 
-      } /* fim initAnimations */
+      }
 
       /* ------------------------------------------------
          TESTIMONIALS SLIDER
@@ -1874,10 +1847,9 @@
         dot.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') goToSlide(i); });
       });
 
-      /* Auto-avance a cada 6s */
       setInterval(function () { goToSlide(current + 1); }, 6000);
 
-    }); /* fim window.onload */
+    });
   </script>
 
 </body>
