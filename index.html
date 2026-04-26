@@ -6,13 +6,34 @@
   <title>Invest Hauser — Construção &amp; Incorporação</title>
   <meta name="description" content="Construção de alto padrão para quem edifica com visão. Precisão, qualidade e parceria em cada projeto.">
 
-  <!-- Barlow — substituto gratuito mais próximo do TWK Lausanne -->
+  <!--
+    FONTES — carregamento não-bloqueante
+    ─────────────────────────────────────────────────────────────
+    Problema original: Google Fonts bloqueava render por ~1.940ms
+    e criava cadeia de rede (CSS → 6 woff2 em sequência).
+
+    Solução:
+    1. preload + onload="this.rel='stylesheet'" → não bloqueia render
+    2. @font-face inline com font-display:swap → texto aparece
+       imediatamente com fonte de sistema, troca quando Barlow chega
+    3. Reduzido pra 3 pesos essenciais (200, 300, 400) em vez de 6
+  -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300&display=swap" rel="stylesheet">
+  <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400&display=swap"
+        as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400&display=swap">
+  </noscript>
 
-  <!-- Preconnect ao Cloudinary para acelerar carga do vídeo hero -->
+  <!-- Preconnect ao Cloudinary + preload do poster hero para LCP rápido -->
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  <link rel="preload"
+        href="https://res.cloudinary.com/db4pwya16/video/upload/so_0/hero_s1kf6k.jpg"
+        as="image"
+        fetchpriority="high">
 
   <!-- GSAP + ScrollTrigger -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
@@ -37,7 +58,7 @@
       --color-on-media:      #FFFFFF;
       --color-on-media-mute: rgba(255,255,255,0.7);
 
-      --font-primary: 'Barlow', sans-serif;
+      --font-primary: 'Barlow', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
 
       --section-v: 120px;
       --section-h: 60px;
