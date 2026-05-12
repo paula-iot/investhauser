@@ -1,1385 +1,992 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invest Hauser — Construção &amp; Incorporação</title>
-  <meta name="description" content="Construção de alto padrão para quem edifica com visão. Precisão, qualidade e parceria em cada projeto.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invest Hauser — Construção & Incorporação</title>
+<meta name="description" content="Construção de alto padrão, vendas e gestão de Airbnb. Cada projeto é uma obra de valor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: auto; font-size: 16px; }
 
-  <!--
-    FONTES — carregamento não-bloqueante
-    ─────────────────────────────────────────────────────────────
-    Problema original: Google Fonts bloqueava render por ~1.940ms
-    e criava cadeia de rede (CSS → 6 woff2 em sequência).
+:root {
+  --color-bg:       #ffffff;
+  --color-bg-2:     #f5f5f5;
+  --color-bg-3:     #efefef;
+  --color-text:     #000000;
+  --color-muted:    #777777;
+  --color-accent:   #000000;
+  --color-accent-dim: rgba(0,0,0,0.10);
+  --color-black-4:  rgba(0,0,0,0.04);
+  --color-black-8:  rgba(0,0,0,0.08);
+  --color-black-12: rgba(0,0,0,0.12);
+  --color-black-20: rgba(0,0,0,0.20);
+  --color-line:     rgba(0,0,0,0.08);
+  --font-sans:   'Nunito', sans-serif;
+  --font-serif:  'Cormorant Garamond', Georgia, serif;
+  --section-padding: 140px 64px;
+}
 
-    Solução:
-    1. preload + onload="this.rel='stylesheet'" → não bloqueia render
-    2. @font-face inline com font-display:swap → texto aparece
-       imediatamente com fonte de sistema, troca quando Barlow chega
-    3. Reduzido pra 3 pesos essenciais (200, 300, 400) em vez de 6
-  -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload"
-        href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400&display=swap"
-        as="style"
-        onload="this.onload=null;this.rel='stylesheet'">
-  <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400&display=swap">
-  </noscript>
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  cursor: none;
+}
 
-  <!-- Preconnect ao Cloudinary + preload do poster hero para LCP rápido -->
-  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-  <link rel="preload"
-        href="https://res.cloudinary.com/db4pwya16/video/upload/so_0/hero_s1kf6k.jpg"
-        as="image"
-        fetchpriority="high">
+/* CURSOR */
+.cursor { position: fixed; pointer-events: none; z-index: 9999; }
+.cursor__dot {
+  width: 8px; height: 8px;
+  background: var(--color-text);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width .25s, height .25s;
+}
+.cursor__ring {
+  width: 40px; height: 40px;
+  border: 1.5px solid var(--color-black-20);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width .35s, height .35s, border-color .3s;
+}
+body:has(a:hover, button:hover) .cursor__dot { width: 12px; height: 12px; }
+body:has(a:hover, button:hover) .cursor__ring { width: 64px; height: 64px; border-color: var(--color-text); }
 
-  <!-- GSAP + ScrollTrigger -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+/* LOADER */
+.loader {
+  position: fixed; inset: 0; z-index: 2000;
+  background: var(--color-bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 28px;
+  transition: opacity .7s ease, visibility .7s ease;
+}
+.loader--hidden { opacity: 0; visibility: hidden; }
+.loader__percentage {
+  font-family: var(--font-sans);
+  font-size: clamp(5rem, 15vw, 12rem);
+  font-weight: 300; color: var(--color-text);
+  line-height: 1; letter-spacing: -.02em;
+}
+.loader__track { width: 180px; height: 1px; background: var(--color-black-12); }
+.loader__fill  { height: 100%; width: 0; background: var(--color-text); }
+.loader__label { font-size: .6rem; letter-spacing: .35em; text-transform: uppercase; color: var(--color-muted); }
 
-  <style>
-    /* ============================================================
-       DESIGN TOKENS
-    ============================================================ */
-    :root {
-      --color-bg-primary:    #FAFAF7;
-      --color-bg-secondary:  #F0EDE5;
-      --color-bg-surface:    #FFFFFF;
+/* NAV */
+.nav {
+  position: fixed; top: 28px; left: 50%; z-index: 100;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-black-12);
+  border-radius: 100px; padding: 12px 28px;
+  display: flex; align-items: center; gap: 40px;
+  transition: background .3s ease;
+}
+.nav__logo {
+  font-family: var(--font-sans); font-size: 1rem; font-weight: 600;
+  letter-spacing: .08em; color: var(--color-text); text-decoration: none; white-space: nowrap;
+}
+.nav__links { display: flex; gap: 28px; list-style: none; }
+.nav__link {
+  font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--color-muted); text-decoration: none; transition: color .3s;
+}
+.nav__link:hover { color: var(--color-text); }
+.nav__cta {
+  font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--color-bg); background: var(--color-text);
+  padding: 8px 20px; border-radius: 100px; text-decoration: none;
+  white-space: nowrap; transition: opacity .3s;
+}
+.nav__cta:hover { opacity: .75; }
 
-      --color-text-primary:  #1A1C1E;
-      --color-text-secondary:#6B6A64;
-      --color-text-muted:    #A8A69E;
+/* HERO */
+.hero {
+  position: relative; height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden;
+}
+.hero__video {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+}
+.hero__overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to bottom,rgba(255,255,255,0.15) 0%,rgba(255,255,255,0.50) 50%,rgba(255,255,255,0.95) 100%);
+}
+.hero__overlay-side {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to right, rgba(255,255,255,0.75) 30%, transparent 70%);
+}
+.hero__content {
+  position: relative; z-index: 2;
+  padding: 0 64px 64px; width: 100%;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.hero__eyebrow {
+  display: flex; align-items: center; gap: 14px;
+  font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--color-accent);
+}
+.hero__eyebrow-line { width: 32px; height: 1px; background: var(--color-text); flex-shrink: 0; }
+.hero__title {
+  font-family: var(--font-sans); font-size: clamp(3rem, 7vw, 7.5rem);
+  font-weight: 400; line-height: 1; letter-spacing: -.03em; color: var(--color-text);
+}
+.hero__title em { font-style: italic; font-weight: 300; }
+.hero__title-line { display: block; }
+.hero__title-char { display: inline-block; }
+.hero__bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 60px; }
+.hero__desc {
+  font-size: .82rem; line-height: 1.9; color: var(--color-muted);
+  max-width: 380px; border-left: 1px solid var(--color-accent-dim); padding-left: 20px;
+}
+.hero__actions { display: flex; gap: 14px; }
+.hero__scroll {
+  position: absolute; bottom: 44px; right: 64px; z-index: 2;
+  display: flex; align-items: center; gap: 10px;
+  font-size: .55rem; letter-spacing: .25em; text-transform: uppercase; color: var(--color-muted);
+}
+.hero__scroll-line {
+  width: 36px; height: 1px; background: var(--color-black-12);
+  position: relative; overflow: hidden;
+}
+.hero__scroll-line::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--color-text); transform: translateX(-100%);
+  animation: scan 2s 3s infinite ease-in-out;
+}
 
-      --color-border:        rgba(26,28,30,0.08);
-      --color-border-hover:  rgba(26,28,30,0.16);
+/* BOTÕES */
+.btn { display: inline-block; text-decoration: none; font-family: var(--font-sans); }
+.btn--primary {
+  padding: 14px 36px; background: var(--color-text); color: var(--color-bg);
+  font-size: .65rem; letter-spacing: .2em; text-transform: uppercase;
+  border-radius: 2px; position: relative; overflow: hidden; transition: color .4s;
+}
+.btn--primary::before {
+  content: ''; position: absolute; inset: 0; background: #333333;
+  transform: scaleX(0); transform-origin: right; transition: transform .4s ease;
+}
+.btn--primary:hover { color: var(--color-bg); }
+.btn--primary:hover::before { transform: scaleX(1); transform-origin: left; }
+.btn--primary__label { position: relative; z-index: 1; }
+.btn--ghost {
+  padding: 14px 36px; border: 1px solid var(--color-black-12); color: var(--color-muted);
+  font-size: .65rem; letter-spacing: .2em; text-transform: uppercase;
+  border-radius: 2px; transition: border-color .3s, color .3s;
+}
+.btn--ghost:hover { border-color: var(--color-black-20); color: var(--color-text); }
 
-      --color-on-media:      #FFFFFF;
-      --color-on-media-mute: rgba(255,255,255,0.7);
+/* MARQUEE */
+.marquee { border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); overflow: hidden; }
+.marquee__track { display: flex; width: max-content; animation: marquee 24s linear infinite; }
+.marquee__item {
+  padding: 16px 48px; font-family: var(--font-sans); font-size: 1rem; font-style: italic;
+  color: var(--color-muted); white-space: nowrap; display: flex; align-items: center; gap: 20px;
+  border-right: 1px solid var(--color-line);
+}
+.marquee__dot { color: var(--color-accent); font-style: normal; font-size: .9rem; }
 
-      --font-primary: 'Barlow', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+/* SEÇÃO BASE */
+.section { padding: var(--section-padding); }
+.section--alt   { background: var(--color-bg-3); }
+.section--alt-2 { background: var(--color-bg-2); }
+.section--numbers { padding: 100px 64px; }
+.section__label {
+  font-size: .58rem; letter-spacing: .38em; text-transform: uppercase;
+  color: var(--color-accent); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section__label::before {
+  content: ''; display: inline-block; width: 22px; height: 1px; background: var(--color-accent);
+}
+.section__title {
+  font-family: var(--font-sans); font-size: clamp(2.8rem, 5.5vw, 5.5rem);
+  font-weight: 400; line-height: 1.05; letter-spacing: -.03em; color: var(--color-text);
+}
+.section__title em { font-style: italic; font-weight: 300; }
+.section__title--spaced { margin-bottom: 28px; }
+.section__title--flush  { margin-bottom: 0; }
 
-      --section-v: 120px;
-      --section-h: 60px;
+/* SOBRE */
+.about { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center; }
+.about__visual { position: relative; height: 620px; }
+.about__media { position: absolute; top: 0; left: 0; width: 78%; height: 78%; background: var(--color-bg-2); overflow: hidden; }
+.about__media-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #1a1d1f, #0e1113);
+  display: flex; align-items: center; justify-content: center;
+}
+.about__media-placeholder { font-family: var(--font-sans); font-size: 6rem; color: var(--color-black-4); font-weight: 300; user-select: none; }
+.about__media-secondary {
+  position: absolute; bottom: 0; right: 0; width: 52%; height: 52%;
+  background: var(--color-bg-2); border: 1px solid var(--color-line); overflow: hidden;
+}
+.about__media-secondary-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #151819, #0b0e10);
+  display: flex; align-items: center; justify-content: center;
+}
+.about__media-placeholder--small { font-size: 2.5rem; color: var(--color-black-4); }
+.about__body { display: flex; flex-direction: column; }
+.about__paragraph { font-size: .82rem; line-height: 1.95; color: var(--color-muted); margin-bottom: 18px; }
+.about__link {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--color-text); text-decoration: none;
+  border-bottom: 1px solid var(--color-black-12); padding-bottom: 4px;
+  margin-top: 12px; align-self: flex-start; transition: color .3s, border-color .3s;
+}
+.about__link:hover { color: var(--color-accent); border-color: var(--color-accent); }
+.about__link::after { content: '→'; transition: transform .3s; }
+.about__link:hover::after { transform: translateX(4px); }
 
-      --ease-expo:    cubic-bezier(0.16,1,0.3,1);
-      --ease-in-out:  cubic-bezier(0.65,0,0.35,1);
+/* NÚMEROS */
+.numbers__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--color-line); margin-top: 60px; }
+.numbers__item { background: var(--color-bg-3); padding: 48px 36px; position: relative; overflow: hidden; }
+.numbers__item::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: var(--color-text); transform: scaleX(0); transform-origin: left; transition: transform .5s ease;
+}
+.numbers__item:hover::after { transform: scaleX(1); }
+.numbers__value { font-family: var(--font-sans); font-size: clamp(3rem, 5vw, 5rem); font-weight: 300; color: var(--color-text); line-height: 1; margin-bottom: 10px; letter-spacing: -.03em; }
+.numbers__value-suffix { color: var(--color-accent); font-style: normal; font-size: .65em; }
+.numbers__label { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--color-muted); line-height: 1.6; }
 
-      --tr-fast: 0.25s var(--ease-expo);
-      --tr-med:  0.5s  var(--ease-expo);
-      --tr-slow: 0.8s  var(--ease-expo);
-    }
+/* PROJETOS */
+.projects { padding: 140px 0; overflow: hidden; }
+.projects__header { padding: 0 64px; margin-bottom: 56px; display: flex; justify-content: space-between; align-items: flex-end; }
+.projects__drag-hint {
+  font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: var(--color-muted);
+  display: flex; align-items: center; gap: 10px;
+}
+.projects__drag-hint::before { content: ''; display: inline-block; width: 18px; height: 1px; background: var(--color-muted); }
+.projects__overflow { overflow: hidden; }
+.projects__track { display: flex; gap: 20px; padding: 0 64px; width: max-content; }
 
-    /* ============================================================ RESET ============================================================ */
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html { font-size:16px; scroll-behavior:smooth; }
-    body {
-      background-color: var(--color-bg-primary);
-      color: var(--color-text-primary);
-      font-family: var(--font-primary);
-      font-weight: 300;
-      line-height: 1.6;
-      overflow-x: hidden;
-      cursor: none;
-    }
-    img, video { display:block; max-width:100%; height:auto; }
-    a { color:inherit; text-decoration:none; }
-    button { font-family:inherit; }
+/* PROJECT CARD */
+.project-card {
+  width: 440px; flex-shrink: 0;
+  text-decoration: none; color: inherit; display: block;
+}
+.project-card__media {
+  height: 560px; background: var(--color-bg-2);
+  position: relative; overflow: hidden; margin-bottom: 22px;
+}
+.project-card__media--tall  { height: 600px; }
+.project-card__media--mid   { height: 520px; }
+.project-card__media--short { height: 480px; }
+.project-card__media-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(160deg, #1c2022, #0e1214);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .7s cubic-bezier(.4,0,.2,1);
+}
+.project-card__media-inner--2 { background: linear-gradient(145deg, #181e22, #0c1214); }
+.project-card__media-inner--3 { background: linear-gradient(145deg, #1a1e20, #0e1214); }
+.project-card__media-inner--4 { background: linear-gradient(145deg, #1c2224, #101618); }
+.project-card__media-inner--5 { background: linear-gradient(145deg, #161c1e, #0a1012); }
+.project-card:hover .project-card__media-inner { transform: scale(1.04); }
+.project-card__num {
+  position: absolute; top: 24px; left: 24px;
+  font-family: var(--font-sans); font-size: 6rem;
+  color: var(--color-black-4); line-height: 1; user-select: none;
+}
+.project-card__tag {
+  position: absolute; bottom: 24px; left: 24px;
+  font-size: .55rem; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--color-bg); background: rgba(0,0,0,.75);
+  padding: 6px 14px; backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.project-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.5), transparent); }
+.project-card__placeholder { font-family: var(--font-sans); font-size: 1rem; font-style: italic; color: var(--color-muted); letter-spacing: .05em; }
+.project-card__title {
+  font-family: var(--font-sans); font-size: 1.6rem; font-weight: 300; font-style: italic;
+  color: var(--color-text); margin-bottom: 6px; line-height: 1.1; letter-spacing: -.02em;
+}
+.project-card__meta { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
 
-    /* ============================================================ CURSOR ============================================================ */
-    .cursor {
-      position: fixed; top:0; left:0;
-      width:10px; height:10px;
-      background:#FFFFFF;
-      border-radius:50%;
-      pointer-events:none;
-      z-index:9999;
-      transform:translate(-50%,-50%);
-      transition: width var(--tr-fast), height var(--tr-fast), opacity 0.3s;
-      mix-blend-mode:difference;
-      will-change:left,top;
-    }
-    .cursor--hover { width:42px; height:42px; }
+/* ─── STATUS DO PROJETO ─── */
+.project-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
+}
 
-    /* ============================================================ LOADER ============================================================ */
-    .loader {
-      position:fixed; inset:0;
-      background:var(--color-bg-primary);
-      z-index:9998;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .loader__inner { display:flex; align-items:center; gap:12px; }
-    .loader__label {
-      font-size:13px; font-weight:300;
-      letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary);
-    }
-    .loader__bar { width:0; height:1px; background:var(--color-text-secondary); }
+.project-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .55rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+}
 
-    /* ============================================================ PLACEHOLDERS ============================================================ */
-    .placeholder {
-      width:100%; height:100%; min-height:200px;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:10px;
-    }
-    .placeholder--video { background:#EDF3F8; border:1.5px dashed rgba(50,120,200,0.35); }
-    .placeholder--image { background:#F0EDE5; border:1.5px dashed rgba(26,28,30,0.12); }
-    .placeholder__icon { width:44px; height:44px; opacity:0.35; }
-    .placeholder__label {
-      font-size:11px; font-weight:400;
-      letter-spacing:0.1em; text-transform:uppercase;
-    }
-    .placeholder--video .placeholder__label { color:rgba(50,120,200,0.7); }
-    .placeholder--image .placeholder__label { color:rgba(26,28,30,0.5); }
-    .placeholder__sublabel { font-size:10px; color:var(--color-text-muted); opacity:0.6; }
+/* ponto de status */
+.project-card__status::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
-    /* ============================================================ NAVIGATION ============================================================ */
-    .nav {
-      position:fixed; top:0; left:0; right:0;
-      z-index:100;
-      display:flex; justify-content:center;
-      padding-top:24px;
-      pointer-events:none;
-    }
-    .nav__island {
-      display:flex; align-items:center;
-      background:rgba(250,250,247,0.82);
-      backdrop-filter:blur(24px);
-      -webkit-backdrop-filter:blur(24px);
-      border:0.5px solid var(--color-border-hover);
-      border-radius:100px;
-      padding:8px 8px 8px 22px;
-      pointer-events:all;
-      transition: transform var(--tr-med), opacity var(--tr-med), background var(--tr-med);
-      white-space:nowrap;
-      max-width:calc(100vw - 48px);
-    }
-    .nav__island--scrolled-down { transform:translateY(-8px); }
-    .nav__island--bottom { background:rgba(250,250,247,0.96); }
-    .nav__logo { font-size:13px; font-weight:400; letter-spacing:0.06em; margin-right:32px; }
-    .nav__links { display:flex; align-items:center; gap:28px; }
-    .nav__link {
-      font-size:13px; font-weight:300;
-      color:var(--color-text-secondary);
-      letter-spacing:0.02em;
-      transition:color var(--tr-fast);
-      cursor:pointer;
-    }
-    .nav__link:hover, .nav__link--active { color:var(--color-text-primary); }
-    .nav__cta {
-      display:inline-flex; align-items:center; gap:6px;
-      background:var(--color-text-primary);
-      color:var(--color-bg-primary);
-      font-size:12px; font-weight:500;
-      letter-spacing:0.04em;
-      padding:10px 20px;
-      border-radius:100px;
-      margin-left:24px;
-      transition: background var(--tr-fast), color var(--tr-fast);
-      cursor:pointer;
-    }
-    .nav__cta:hover { background:#2d2f31; }
-    .nav__cta-icon { width:10px; height:10px; }
+/* Concluído — preto sólido */
+.project-card__status--done {
+  color: var(--color-text);
+}
+.project-card__status--done::before {
+  background: var(--color-text);
+}
 
-    /* ============================================================ HERO ============================================================ */
-    .hero {
-      position:relative;
-      height:300vh;          /* 3× a tela — dá espaço pro scroll controlar o vídeo */
-    }
-    .hero__media {
-      position:sticky;
-      top:0; left:0;
-      width:100%; height:100vh;
-      z-index:0;
-      overflow:hidden;
-    }
+/* Em andamento — cinza médio com pulso */
+.project-card__status--progress {
+  color: #888888;
+}
+.project-card__status--progress::before {
+  background: #888888;
+  animation: statusPulse 2.4s ease-in-out infinite;
+}
 
-    /* ─── FIX RESPONSIVO ───
-       O vídeo (e a imagem de fallback) precisam cobrir
-       todo o container absoluto em qualquer viewport.
-       max-width:100% do reset genérico conflitava com
-       height:100%, por isso sobrescrevemos aqui. */
-    .hero__media video,
-    .hero__media img {
-      width:100%; height:100%;
-      max-width:none;     /* cancela o max-width:100% do reset */
-      object-fit:cover;
-    }
+/* Em breve — cinza claro, quase etéreo */
+.project-card__status--soon {
+  color: #c0c0c0;
+}
+.project-card__status--soon::before {
+  background: #c0c0c0;
+}
 
-    .hero__canvas {
-      position:absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      opacity:0;
-      transition: opacity 0.4s ease;
-    }
-    .hero__canvas--ready { opacity:1; }
+/* seta "Ver projeto" — aparece no hover */
+.project-card__access {
+  font-size: .55rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--color-black-20);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-sans);
+  transition: color .3s;
+}
+.project-card__access::after {
+  content: '→';
+  display: inline-block;
+  transition: transform .3s;
+}
+.project-card:hover .project-card__access {
+  color: var(--color-text);
+}
+.project-card:hover .project-card__access::after {
+  transform: translateX(4px);
+}
 
-    .hero__poster {
-      position:absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      max-width:none;
-      object-fit:cover;
-      transition: opacity 0.4s ease;
-    }
-    .hero__poster--hidden { opacity:0; pointer-events:none; }
+/* card "Em breve" — ligeiramente desvanecido */
+.project-card--soon { opacity: .65; transition: opacity .4s; }
+.project-card--soon:hover { opacity: 1; }
 
-    .hero__preload {
-      position:absolute;
-      bottom:0; left:0;
-      width:100%; height:2px;
-      z-index:3;
-      background:rgba(255,255,255,0.1);
-    }
-    .hero__preload-bar {
-      height:100%;
-      width:0%;
-      background:rgba(255,255,255,0.5);
-      transition: width 0.15s linear;
-    }
-    .hero__preload--done { opacity:0; transition:opacity 0.5s ease; }
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .3; transform: scale(.75); }
+}
 
-    .hero__overlay {
-      position:sticky;
-      top:0; left:0;
-      width:100%; height:100vh;
-      margin-top:-100vh;     /* sobrepoem o vídeo sticky */
-      background:linear-gradient(
-        to top,
-        rgba(11,16,18,0.88) 0%,
-        rgba(11,16,18,0.28) 50%,
-        rgba(11,16,18,0.08) 100%
-      );
-      z-index:1;
-      pointer-events:none;
-    }
-    .hero__content {
-      position:sticky;
-      top:0; left:0;
-      width:100%; height:100vh;
-      margin-top:-100vh;     /* sobrepoem o overlay */
-      z-index:2;
-      display:flex;
-      align-items:flex-end;
-      padding:0 var(--section-h) 88px;
-    }
-    .hero__eyebrow {
-      font-size:11px; font-weight:400;
-      letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-on-media-mute);
-      margin-bottom:20px;
-    }
-    .hero__title {
-      font-size:clamp(48px, 7vw, 96px);
-      font-weight:200; line-height:1.05;
-      letter-spacing:-0.025em;
-      max-width:820px;
-      color:var(--color-on-media);
-    }
-    .hero__scroll {
-      position:sticky;
-      top:0; left:0;
-      width:100%; height:100vh;
-      margin-top:-100vh;
-      z-index:2;
-      pointer-events:none;
-    }
-    .hero__scroll-label {
-      position:absolute;
-      right:var(--section-h); bottom:140px;
-      font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
-      color:var(--color-on-media-mute);
-      writing-mode:vertical-rl;
-    }
-    .hero__scroll-line {
-      position:absolute;
-      right:calc(var(--section-h) + 4px); bottom:88px;
-      width:1px; height:48px;
-      background:var(--color-on-media-mute);
-      transform-origin:top;
-      animation:scrollLine 2.2s var(--ease-in-out) infinite;
-    }
-    @keyframes scrollLine {
-      0%   { transform:scaleY(0); opacity:0; transform-origin:top; }
-      45%  { transform:scaleY(1); opacity:1; transform-origin:top; }
-      46%  { transform-origin:bottom; }
-      100% { transform:scaleY(0); opacity:0; transform-origin:bottom; }
-    }
+/* SERVIÇOS */
+.services__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--color-line); margin-top: 60px; }
+.service-card { background: var(--color-bg-3); padding: 52px 44px; position: relative; overflow: hidden; cursor: pointer; }
+.service-card::before { content: ''; position: absolute; inset: 0; background: #000000; opacity: 0; transition: opacity .4s; z-index: 0; }
+.service-card > * { position: relative; z-index: 1; }
+.service-card:hover::before { opacity: 1; }
+.service-card__accent { width: 0; height: 1px; background: var(--color-text); margin-bottom: 36px; transition: width .5s ease; }
+.service-card:hover .service-card__accent { width: 36px; background: #ffffff; }
+.service-card__num { font-family: var(--font-sans); font-size: 4rem; color: var(--color-black-4); line-height: 1; margin-bottom: 20px; transition: color .4s; }
+.service-card:hover .service-card__num { color: rgba(255,255,255,.1); }
+.service-card__title { font-family: var(--font-sans); font-size: 1.5rem; font-weight: 600; color: var(--color-text); margin-bottom: 14px; line-height: 1.2; letter-spacing: -.01em; transition: color .4s; }
+.service-card:hover .service-card__title { color: #ffffff; }
+.service-card__desc { font-size: .75rem; color: var(--color-muted); line-height: 1.85; transition: color .4s; }
+.service-card:hover .service-card__desc { color: rgba(255,255,255,.6); }
+.service-card__arrow { position: absolute; bottom: 44px; right: 44px; z-index: 1; color: var(--color-text); font-size: 1.1rem; opacity: 0; transform: translate(-5px, 5px); transition: opacity .3s, transform .3s, color .4s; }
+.service-card:hover .service-card__arrow { opacity: 1; transform: translate(0,0); color: #ffffff; }
 
-    /* ============================================================ SPECIALISTS ============================================================ */
-    .specialists {
-      padding:var(--section-v) var(--section-h);
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:80px; align-items:center;
-    }
-    .specialists__label {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:32px;
-    }
-    .specialists__text {
-      font-size:clamp(24px, 2.8vw, 38px);
-      font-weight:200; line-height:1.35;
-      letter-spacing:-0.01em;
-    }
-    .specialists__text strong { font-weight:400; }
-    .specialists__media {
-      aspect-ratio:4/3; overflow:hidden; border-radius:3px;
-    }
-    .specialists__media img,
-    .specialists__media video {
-      width:100%; height:100%; object-fit:cover;
-      transition: transform var(--tr-slow);
-    }
-    .specialists__media:hover img,
-    .specialists__media:hover video { transform:scale(1.04); }
+/* AIRBNB */
+.airbnb { min-height: 100vh; background: var(--color-bg-2); display: flex; align-items: center; justify-content: center; padding: 120px 64px; position: relative; overflow: hidden; }
+.airbnb::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 30% 50%, rgba(0,0,0,.02), transparent); }
+.airbnb::after { content: 'AIRBNB'; position: absolute; bottom: -80px; right: -40px; font-family: var(--font-sans); font-size: clamp(10rem, 20vw, 22rem); color: rgba(0,0,0,.02); line-height: 1; user-select: none; letter-spacing: -.02em; }
+.airbnb__inner { display: grid; grid-template-columns: 1fr 1fr; gap: 120px; align-items: center; position: relative; z-index: 1; max-width: 1200px; }
+.airbnb__quote-mark { font-family: var(--font-sans); font-size: 7rem; color: var(--color-accent-dim); line-height: .5; margin-bottom: 32px; }
+.airbnb__claim { font-family: var(--font-sans); font-size: clamp(2rem, 3.5vw, 3.2rem); font-weight: 300; line-height: 1.2; font-style: italic; color: var(--color-text); margin-bottom: 36px; }
+.airbnb__claim em { color: var(--color-accent); font-style: normal; }
+.airbnb__body { font-size: .8rem; color: var(--color-muted); line-height: 1.9; margin-bottom: 36px; }
+.airbnb__features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+.airbnb__feature { display: flex; align-items: flex-start; gap: 14px; font-size: .72rem; color: var(--color-muted); line-height: 1.6; }
+.airbnb__feature::before { content: '◆'; color: var(--color-accent); flex-shrink: 0; font-size: .5rem; margin-top: .3em; }
+.airbnb__visual { position: relative; height: 500px; }
+.airbnb__media { width: 100%; height: 100%; background: var(--color-bg-3); border: 1px solid var(--color-line); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.airbnb__media-inner { width: 100%; height: 100%; background: linear-gradient(145deg, #181c1e, #0d1012); display: flex; align-items: center; justify-content: center; }
+.airbnb__media-placeholder { font-family: var(--font-sans); font-size: .9rem; font-style: italic; color: var(--color-black-12); letter-spacing: .08em; }
+.airbnb__media-tag { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; border-top: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,.75); backdrop-filter: blur(10px); }
+.airbnb__media-tag-label { font-size: .55rem; letter-spacing: .25em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+.airbnb__media-tag-value { font-family: var(--font-sans); font-size: 1.8rem; font-weight: 300; color: #ffffff; line-height: 1; }
 
-    /* ============================================================ ABOUT ============================================================ */
-    .about {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:100px; align-items:center;
-    }
-    .about__label {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:24px;
-    }
-    .about__title {
-      font-size:clamp(26px, 2.8vw, 40px);
-      font-weight:200; line-height:1.25;
-      letter-spacing:-0.02em; margin-bottom:28px;
-    }
-    .about__body {
-      font-size:15px; font-weight:300;
-      color:var(--color-text-secondary);
-      line-height:1.8; margin-bottom:40px;
-    }
-    .about__link {
-      display:inline-flex; align-items:center; gap:10px;
-      font-size:13px; font-weight:400; letter-spacing:0.04em;
-      border-bottom:0.5px solid var(--color-text-muted);
-      padding-bottom:4px;
-      transition: color var(--tr-fast), gap var(--tr-fast), border-color var(--tr-fast);
-    }
-    .about__link:hover {
-      gap:16px;
-      color:var(--color-text-secondary);
-      border-color:var(--color-text-secondary);
-    }
-    .about__image { aspect-ratio:3/4; overflow:hidden; border-radius:3px; }
-    .about__image img {
-      width:100%; height:100%; object-fit:cover;
-      transition: transform var(--tr-slow);
-    }
-    .about__image:hover img { transform:scale(1.04); }
+/* CTA */
+.cta { background: var(--color-bg-2); padding: 160px 64px; display: grid; grid-template-columns: 1fr auto; gap: 80px; align-items: center; border-top: 1px solid var(--color-line); }
+.cta__title { font-family: var(--font-sans); font-size: clamp(3rem, 7vw, 7.5rem); font-weight: 400; line-height: .95; letter-spacing: -.02em; color: var(--color-text); }
+.cta__title em { font-style: italic; font-weight: 300; color: var(--color-accent); }
+.cta__body { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+.cta__desc { font-size: .78rem; color: var(--color-muted); line-height: 1.8; max-width: 320px; }
+.cta__link-ghost { display: inline-flex; align-items: center; gap: 8px; font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--color-muted); text-decoration: none; transition: color .3s; }
+.cta__link-ghost:hover { color: var(--color-accent); }
+.cta__link-ghost::after { content: '↗'; transition: transform .3s; }
+.cta__link-ghost:hover::after { transform: translate(3px,-3px); }
 
-    /* ============================================================ SERVICES ============================================================ */
-    .services {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-    }
-    .services__header {
-      display:flex; justify-content:space-between; align-items:flex-end;
-      margin-bottom:56px;
-    }
-    .services__label {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:16px;
-    }
-    .services__title {
-      font-size:clamp(26px, 3.2vw, 46px);
-      font-weight:200; line-height:1.2;
-      letter-spacing:-0.02em; max-width:600px;
-    }
-    .services__title strong { font-weight:400; }
-    .services__overview-link {
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:13px; font-weight:400;
-      color:var(--color-text-secondary);
-      border-bottom:0.5px solid var(--color-text-muted);
-      padding-bottom:4px;
-      transition: color var(--tr-fast), gap var(--tr-fast);
-      white-space:nowrap; flex-shrink:0; align-self:flex-end;
-    }
-    .services__overview-link:hover { color:var(--color-text-primary); gap:14px; }
-    .services__grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+/* FOOTER */
+.footer { background: var(--color-bg); padding: 44px 64px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-line); }
+.footer__logo { font-family: var(--font-sans); font-size: 1.2rem; font-weight: 300; letter-spacing: .1em; color: var(--color-muted); }
+.footer__links { display: flex; gap: 28px; list-style: none; }
+.footer__link { font-size: .58rem; letter-spacing: .18em; text-transform: uppercase; color: var(--color-muted); text-decoration: none; transition: color .3s; }
+.footer__link:hover { color: var(--color-text); }
+.footer__copy { font-size: .55rem; color: var(--color-muted); letter-spacing: .08em; text-align: right; line-height: 1.7; }
 
-    .service-card {
-      position:relative; aspect-ratio:3/4;
-      overflow:hidden;
-      background:var(--color-bg-secondary);
-      cursor:pointer; display:block;
-    }
-    .service-card__media { position:absolute; inset:0; }
-    .service-card__media img,
-    .service-card__media .placeholder {
-      width:100%; height:100%; object-fit:cover;
-      transition: transform var(--tr-slow);
-    }
-    .service-card:hover .service-card__media img,
-    .service-card:hover .service-card__media .placeholder { transform:scale(1.06); }
-    .service-card__overlay {
-      position:absolute; inset:0;
-      background:linear-gradient(to top, rgba(11,16,18,0.88) 0%, transparent 55%);
-    }
-    .service-card__content { position:absolute; bottom:0; left:0; right:0; padding:28px; }
-    .service-card__title {
-      font-size:20px; font-weight:300;
-      line-height:1.2; letter-spacing:-0.01em;
-      color:var(--color-on-media);
-    }
+/* GRAIN */
+.grain { position: fixed; inset: 0; z-index: 9000; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); opacity: .6; }
 
-    /* ============================================================ SHOWROOM ============================================================ */
-    .showroom {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:80px; align-items:center;
-    }
-    .showroom__label {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:24px;
-    }
-    .showroom__title {
-      font-size:clamp(26px, 2.8vw, 40px);
-      font-weight:200; line-height:1.2;
-      letter-spacing:-0.02em; margin-bottom:32px;
-    }
-    .showroom__address-label {
-      font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
-      color:var(--color-text-muted); margin-bottom:8px;
-    }
-    .showroom__address {
-      font-size:14px; font-weight:300;
-      color:var(--color-text-secondary); line-height:1.8;
-    }
-    .showroom__link {
-      display:inline-flex; align-items:center; gap:10px;
-      font-size:13px; font-weight:400; letter-spacing:0.04em;
-      border-bottom:0.5px solid var(--color-text-muted);
-      padding-bottom:4px; margin-top:36px;
-      transition: color var(--tr-fast), gap var(--tr-fast);
-    }
-    .showroom__link:hover { gap:16px; color:var(--color-text-secondary); }
-    .showroom__media { aspect-ratio:4/3; overflow:hidden; border-radius:3px; }
-    .showroom__media img,
-    .showroom__media video { width:100%; height:100%; object-fit:cover; }
+/* BADGE MAGNÉTICO */
+.mag-badge { position: fixed; z-index: 8999; width: 120px; height: 120px; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; transition: opacity .4s ease; animation: spinBadge 10s linear infinite; color: var(--color-text); }
+.mag-badge--visible { opacity: 1; }
+.mag-badge__svg { width: 100%; height: 100%; }
 
-    /* ============================================================ PROJECTS ============================================================ */
-    .projects {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-    }
-    .projects__header {
-      display:flex; justify-content:space-between; align-items:flex-end;
-      margin-bottom:56px;
-    }
-    .projects__label {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:16px;
-    }
-    .projects__title {
-      font-size:clamp(26px, 2.8vw, 40px);
-      font-weight:200; letter-spacing:-0.02em; line-height:1.15;
-    }
-    .projects__view-link {
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:13px; font-weight:400;
-      color:var(--color-text-secondary);
-      border-bottom:0.5px solid var(--color-text-muted);
-      padding-bottom:4px;
-      transition: color var(--tr-fast), gap var(--tr-fast);
-      white-space:nowrap; flex-shrink:0; align-self:flex-end;
-    }
-    .projects__view-link:hover { color:var(--color-text-primary); gap:14px; }
-    .projects__grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+/* KEYFRAMES */
+@keyframes marquee   { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes scan      { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+@keyframes spinBadge { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
 
-    .project-card {
-      position:relative; aspect-ratio:3/4;
-      overflow:hidden;
-      background:var(--color-bg-secondary);
-      cursor:pointer; display:block;
-    }
-    .project-card__media { position:absolute; inset:0; }
-    .project-card__media img,
-    .project-card__media .placeholder {
-      width:100%; height:100%; object-fit:cover;
-      transition: transform var(--tr-slow);
-    }
-    .project-card:hover .project-card__media img { transform:scale(1.06); }
-    .project-card__overlay {
-      position:absolute; inset:0;
-      background:linear-gradient(to top, rgba(11,16,18,0.85) 0%, transparent 52%);
-    }
-    .project-card__content { position:absolute; bottom:0; left:0; right:0; padding:24px; }
-    .project-card__tags { margin-bottom:8px; }
-    .project-card__tag {
-      display:block; font-size:11px;
-      letter-spacing:0.08em;
-      color:rgba(255,255,255,0.75); line-height:1.9;
-    }
-    .project-card__title {
-      font-size:18px; font-weight:300;
-      letter-spacing:-0.01em; line-height:1.2;
-      color:var(--color-on-media);
-    }
+/* RESPONSIVIDADE — tablet */
+@media (max-width: 1024px) {
+  :root { --section-padding: 100px 40px; }
+  .nav { gap: 24px; padding: 10px 20px; }
+  .nav__links { gap: 20px; }
+  .hero__content { padding: 0 40px 56px; }
+  .hero__scroll  { right: 40px; }
+  .hero__bottom  { flex-direction: column; align-items: flex-start; gap: 28px; }
+  .about { grid-template-columns: 1fr; gap: 60px; }
+  .about__visual { height: 420px; }
+  .numbers__grid { grid-template-columns: repeat(2, 1fr); }
+  .projects__header { padding: 0 40px; }
+  .projects__track  { padding: 0 40px; }
+  .project-card     { width: 360px; }
+  .services__grid { grid-template-columns: repeat(2, 1fr); }
+  .airbnb__inner { grid-template-columns: 1fr; gap: 60px; }
+  .airbnb__visual { height: 380px; }
+  .cta { grid-template-columns: 1fr; gap: 48px; padding: 100px 40px; }
+  .footer { flex-direction: column; gap: 28px; text-align: center; padding: 40px; }
+  .footer__copy { text-align: center; }
+}
 
-    /* ============================================================ MOOD ============================================================ */
-    .mood { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
-    .mood__item { aspect-ratio:3/4; overflow:hidden; }
-    .mood__item img {
-      width:100%; height:100%; object-fit:cover;
-      transition: transform var(--tr-slow);
-    }
-    .mood__item:hover img { transform:scale(1.04); }
+/* RESPONSIVIDADE — mobile */
+@media (max-width: 768px) {
+  :root { --section-padding: 80px 24px; }
+  .cursor { display: none; }
+  body    { cursor: auto; }
+  .mag-badge { display: none; }
+  .nav { top: 16px; padding: 10px 18px; gap: 16px; width: calc(100% - 32px); justify-content: space-between; }
+  .nav__links { display: none; }
+  .hero__content { padding: 0 24px 48px; gap: 20px; }
+  .hero__title   { font-size: clamp(2.4rem, 9vw, 4rem); }
+  .hero__bottom  { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .hero__actions { flex-direction: column; width: 100%; }
+  .hero__actions .btn { width: 100%; text-align: center; }
+  .hero__scroll  { display: none; }
+  .hero__overlay { background: linear-gradient(to bottom,rgba(255,255,255,0.30) 0%,rgba(255,255,255,0.65) 40%,rgba(255,255,255,0.97) 100%); }
+  .marquee__item { padding: 12px 28px; font-size: .85rem; }
+  .about { grid-template-columns: 1fr; gap: 40px; padding: 80px 24px; }
+  .about__visual { height: 300px; }
+  .about__media  { width: 85%; height: 85%; }
+  .about__media-secondary { width: 55%; height: 55%; }
+  .numbers__grid { grid-template-columns: repeat(2, 1fr); }
+  .section--numbers { padding: 60px 24px; }
+  .numbers__value { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+  .projects { padding: 80px 0; }
+  .projects__header { padding: 0 24px; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .projects__track  { padding: 0 24px; gap: 16px; }
+  .project-card     { width: 300px; }
+  .project-card__media        { height: 380px; }
+  .project-card__media--tall  { height: 400px; }
+  .project-card__media--mid   { height: 360px; }
+  .project-card__media--short { height: 320px; }
+  .project-card__access { display: none; }
+  .services__grid { grid-template-columns: 1fr; }
+  .service-card   { padding: 40px 28px; }
+  .airbnb { padding: 80px 24px; }
+  .airbnb__inner { grid-template-columns: 1fr; gap: 40px; }
+  .airbnb__visual { height: 280px; }
+  .airbnb__claim  { font-size: clamp(1.5rem, 5vw, 2rem); }
+  .cta { padding: 80px 24px; grid-template-columns: 1fr; gap: 36px; }
+  .cta__title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+  .cta__body .btn { width: 100%; text-align: center; }
+  .section__title { font-size: clamp(2rem, 7vw, 3rem); }
+  .footer { flex-direction: column; gap: 24px; padding: 32px 24px; text-align: center; }
+  .footer__links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+  .footer__copy  { text-align: center; }
+}
 
-    /* ============================================================ TESTIMONIALS ============================================================ */
-    .testimonials {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-    }
-    .testimonials__counter {
-      font-size:11px; letter-spacing:0.1em;
-      color:var(--color-text-muted); margin-bottom:48px;
-    }
-    .testimonials__track { position:relative; }
-    .testimonials__slide {
-      display:none;
-      grid-template-columns:1fr auto;
-      gap:80px; align-items:center;
-    }
-    .testimonials__slide--active { display:grid; }
-    .testimonials__quote {
-      font-size:clamp(20px, 2.4vw, 30px);
-      font-weight:200; font-style:italic;
-      line-height:1.55; letter-spacing:-0.01em;
-      max-width:720px;
-    }
-    .testimonials__author {
-      display:flex; flex-direction:column; align-items:center;
-      gap:12px; text-align:center; flex-shrink:0;
-    }
-    .testimonials__avatar {
-      width:88px; height:88px; border-radius:50%;
-      overflow:hidden; background:var(--color-bg-secondary);
-    }
-    .testimonials__avatar img { width:100%; height:100%; object-fit:cover; }
-    .testimonials__name { font-size:13px; font-weight:400; }
-    .testimonials__role { font-size:12px; color:var(--color-text-muted); }
-    .testimonials__controls {
-      display:flex; align-items:center; gap:16px; margin-top:48px;
-    }
-    .testimonials__btn {
-      width:40px; height:40px; border-radius:50%;
-      border:0.5px solid var(--color-border-hover);
-      background:transparent;
-      color:var(--color-text-primary);
-      cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      transition: background var(--tr-fast), color var(--tr-fast), border-color var(--tr-fast);
-    }
-    .testimonials__btn:hover {
-      background:var(--color-text-primary);
-      color:var(--color-bg-primary);
-      border-color:var(--color-text-primary);
-    }
-    .testimonials__dots { display:flex; gap:6px; }
-    .testimonials__dot {
-      width:20px; height:2px;
-      background:var(--color-text-muted);
-      border-radius:1px;
-      transition: width var(--tr-fast), background var(--tr-fast);
-      cursor:pointer;
-    }
-    .testimonials__dot--active { background:var(--color-text-primary); width:32px; }
-
-    /* ============================================================ CTA ============================================================ */
-    .cta {
-      padding:var(--section-v) var(--section-h);
-      border-top:0.5px solid var(--color-border);
-      text-align:center;
-    }
-    .cta__eyebrow {
-      font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-      color:var(--color-text-secondary); margin-bottom:24px;
-    }
-    .cta__title {
-      font-size:clamp(36px, 5.5vw, 72px);
-      font-weight:200; line-height:1.1;
-      letter-spacing:-0.025em; margin-bottom:20px;
-    }
-    .cta__subtitle {
-      font-size:16px; font-weight:300;
-      color:var(--color-text-secondary); margin-bottom:52px;
-    }
-    .cta__buttons { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
-
-    /* ============================================================ BUTTON ============================================================ */
-    .btn {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:14px 28px; border-radius:100px;
-      font-family:var(--font-primary);
-      font-size:13px; font-weight:400; letter-spacing:0.04em;
-      border:none; cursor:pointer;
-      transition: background var(--tr-fast), color var(--tr-fast), border-color var(--tr-fast);
-    }
-    .btn--primary { background:var(--color-text-primary); color:var(--color-bg-primary); }
-    .btn--primary:hover { background:#2d2f31; }
-    .btn--outline {
-      background:transparent;
-      color:var(--color-text-primary);
-      border:0.5px solid var(--color-border-hover);
-    }
-    .btn--outline:hover { border-color:var(--color-text-secondary); color:var(--color-text-secondary); }
-
-    /* ============================================================ FOOTER ============================================================ */
-    .footer { border-top:0.5px solid var(--color-border); }
-    .footer__image {
-      position:relative; width:100%;
-      aspect-ratio:16/7; overflow:hidden;
-    }
-    .footer__image img,
-    .footer__image .placeholder {
-      width:100%; height:100%; object-fit:cover;
-    }
-    .footer__image-overlay {
-      position:absolute; inset:0;
-      background:rgba(11,16,18,0.48);
-    }
-    .footer__bottom {
-      padding:40px var(--section-h);
-      display:flex; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; gap:20px;
-    }
-    .footer__copy { font-size:12px; color:var(--color-text-muted); }
-    .footer__social, .footer__legal { display:flex; gap:24px; }
-    .footer__social-link, .footer__legal-link {
-      font-size:12px; color:var(--color-text-muted);
-      transition:color var(--tr-fast);
-    }
-    .footer__social-link:hover, .footer__legal-link:hover { color:var(--color-text-secondary); }
-
-    /* ============================================================ REVEAL ============================================================ */
-    .reveal { opacity:0; transform:translateY(32px); }
-
-    /* ============================================================ RESPONSIVO ============================================================ */
-    @media (max-width: 1024px) {
-      :root { --section-v:80px; --section-h:36px; }
-      .specialists, .about, .showroom { grid-template-columns:1fr; gap:48px; }
-      .services__grid, .projects__grid { grid-template-columns:repeat(2,1fr); }
-      .services__header, .projects__header { flex-direction:column; align-items:flex-start; gap:24px; }
-    }
-    @media (max-width: 640px) {
-      :root { --section-v:60px; --section-h:24px; }
-      .nav__links { display:none; }
-      .hero__title { font-size:36px; }
-      .services__grid, .projects__grid { grid-template-columns:1fr 1fr; }
-      .testimonials__slide { grid-template-columns:1fr; gap:36px; }
-      .testimonials__author { flex-direction:row; text-align:left; }
-      .mood { grid-template-columns:1fr; }
-      .footer__bottom { flex-direction:column; align-items:flex-start; gap:16px; }
-    }
-  </style>
+@media (max-width: 390px) {
+  .hero__title { font-size: clamp(2rem, 10vw, 2.8rem); }
+  .nav__logo   { font-size: .85rem; }
+  .project-card { width: 260px; }
+  .numbers__grid { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
 
-  <div class="cursor" id="js-cursor" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 
-  <div class="loader" id="js-loader" aria-hidden="true">
-    <div class="loader__inner">
-      <span class="loader__label">Invest Hauser</span>
-      <div class="loader__bar" id="js-loader-bar"></div>
+<div class="mag-badge" id="magBadge" aria-hidden="true">
+  <svg class="mag-badge__svg" viewBox="0 0 120 120">
+    <path id="magTextPath" fill="none" d="M 60,60 m -44,0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0"/>
+    <text font-family="Nunito,sans-serif" font-size="10.5" fill="currentColor" letter-spacing="3.5">
+      <textPath href="#magTextPath">DA OBRA AO LUCRO · </textPath>
+    </text>
+  </svg>
+</div>
+
+<div class="cursor" id="cursorDot" style="position:fixed;top:0;left:0;"><div class="cursor__dot"></div></div>
+<div class="cursor" id="cursorRing" style="position:fixed;top:0;left:0;"><div class="cursor__ring"></div></div>
+
+<div class="loader" id="loader">
+  <div class="loader__percentage" id="loaderPct">0</div>
+  <div class="loader__track"><div class="loader__fill" id="loaderFill"></div></div>
+  <div class="loader__label">Invest Hauser</div>
+</div>
+
+<nav class="nav" id="nav">
+  <a href="#" class="nav__logo">Invest.Hauser</a>
+  <ul class="nav__links">
+    <li><a href="#sobre"    class="nav__link">Empresa</a></li>
+    <li><a href="#projetos" class="nav__link">Projetos</a></li>
+    <li><a href="#airbnb"   class="nav__link">Airbnb</a></li>
+  </ul>
+  <a href="#cta" class="nav__cta">Falar conosco</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <video class="hero__video" id="heroVideo" autoplay muted loop playsinline>
+    <source src="https://res.cloudinary.com/db4pwya16/video/upload/q_auto,f_auto/hero1.webm" type="video/webm">
+    <source src="https://res.cloudinary.com/db4pwya16/video/upload/q_auto,f_auto/hero1.mp4"  type="video/mp4">
+  </video>
+  <div class="hero__overlay" aria-hidden="true"></div>
+  <div class="hero__overlay-side" aria-hidden="true"></div>
+  <div class="hero__content">
+    <div class="hero__eyebrow" id="heroEyebrow">
+      <div class="hero__eyebrow-line"></div>
+      Construção · Vendas · Airbnb — Curitiba
+    </div>
+    <h1 class="hero__title" id="heroTitle">
+      <span class="hero__title-line"><span id="titleL1"></span></span>
+      <span class="hero__title-line"><span id="titleL2"></span></span>
+      <span class="hero__title-line"><em id="titleL3"></em></span>
+    </h1>
+    <div class="hero__bottom">
+      <p class="hero__desc" id="heroDesc">
+        Construímos com precisão, vendemos com visão e gerenciamos seu imóvel no Airbnb com inteligência.
+      </p>
+      <div class="hero__actions" id="heroActions">
+        <a href="#cta" class="btn btn--primary"><span class="btn--primary__label">Fale conosco</span></a>
+        <a href="#projetos" class="btn btn--ghost">Ver projetos</a>
+      </div>
     </div>
   </div>
+  <div class="hero__scroll" id="heroScroll">
+    <div class="hero__scroll-line"></div>Scroll
+  </div>
+</section>
 
-  <nav class="nav" aria-label="Navegação principal">
-    <div class="nav__island" id="js-nav-island">
-      <a href="#inicio" class="nav__logo">Invest Hauser</a>
-      <div class="nav__links">
-        <a href="#sobre"    class="nav__link nav__link--active">Sobre</a>
-        <a href="#servicos" class="nav__link">Serviços</a>
-        <a href="#projetos" class="nav__link">Projetos</a>
-        <a href="#contato"  class="nav__link">Contato</a>
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee__track">
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Construção Residencial</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Venda de Imóveis</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Gestão Airbnb</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Empreitada Geral</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Incorporação</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Alto Padrão</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Construção Residencial</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Venda de Imóveis</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Gestão Airbnb</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Empreitada Geral</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Incorporação</div>
+    <div class="marquee__item"><span class="marquee__dot">✦</span>Alto Padrão</div>
+  </div>
+</div>
+
+<!-- SOBRE -->
+<section class="section" id="sobre">
+  <div class="about">
+    <div class="about__visual" id="aboutVisual">
+      <div class="about__media">
+        <div class="about__media-inner"><div class="about__media-placeholder">IH</div></div>
       </div>
-      <a href="#contato" class="nav__cta">
-        Orçamento
-        <svg class="nav__cta-icon" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-      </a>
+      <div class="about__media-secondary">
+        <div class="about__media-secondary-inner"><div class="about__media-placeholder about__media-placeholder--small">◆</div></div>
+      </div>
     </div>
+    <div class="about__body" id="aboutText">
+      <div class="section__label">Quem somos</div>
+      <h2 class="section__title section__title--spaced">Valor real em<br>cada <em>m².</em></h2>
+      <p class="about__paragraph">A Invest Hauser nasceu da crença de que construção e investimento imobiliário precisam caminhar juntos. Não apenas erguemos estruturas — criamos patrimônio duradouro para quem confia na nossa execução.</p>
+      <p class="about__paragraph">Atuamos em construção sob medida, empreitada geral, venda de imóveis e gestão profissional de temporada via Airbnb. Uma empresa, múltiplas soluções.</p>
+      <a href="#cta" class="about__link">Falar com nossa equipe</a>
+    </div>
+  </div>
+</section>
+
+<!-- NÚMEROS -->
+<section class="section section--alt section--numbers" id="numeros">
+  <div class="section__label">Em números</div>
+  <h2 class="section__title">Resultados que<br><em>falam por si.</em></h2>
+  <div class="numbers__grid">
+    <div class="numbers__item">
+      <div class="numbers__value"><span class="js-count" data-target="10">0</span><span class="numbers__value-suffix">+ anos</span></div>
+      <div class="numbers__label">No mercado de<br>construção civil</div>
+    </div>
+    <div class="numbers__item">
+      <div class="numbers__value"><span class="js-count" data-target="80">0</span><span class="numbers__value-suffix">+</span></div>
+      <div class="numbers__label">Obras entregues<br>no prazo</div>
+    </div>
+    <div class="numbers__item">
+      <div class="numbers__value"><span class="js-count" data-target="30">0</span><span class="numbers__value-suffix">+</span></div>
+      <div class="numbers__label">Imóveis gerenciados<br>no Airbnb</div>
+    </div>
+    <div class="numbers__item">
+      <div class="numbers__value"><span class="js-count" data-target="96">0</span><span class="numbers__value-suffix">%</span></div>
+      <div class="numbers__label">Taxa de satisfação<br>dos clientes</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJETOS -->
+<section class="projects" id="projetos">
+  <div class="projects__header">
+    <div>
+      <div class="section__label">Portfólio</div>
+      <h2 class="section__title">Nossas <em>obras.</em></h2>
+    </div>
+    <div class="projects__drag-hint">Arraste para ver</div>
+  </div>
+  <div class="projects__overflow">
+    <div class="projects__track" id="projectsTrack">
+
+      <!-- 01 — Concluído -->
+      <a href="/projetos/residencia-alphaville" class="project-card">
+        <div class="project-card__media">
+          <div class="project-card__media-inner">
+            <span class="project-card__placeholder">Foto do projeto</span>
+          </div>
+          <div class="project-card__overlay" aria-hidden="true"></div>
+          <span class="project-card__num" aria-hidden="true">01</span>
+          <div class="project-card__tag">Residencial</div>
+        </div>
+        <h3 class="project-card__title">Residência Alphaville</h3>
+        <p class="project-card__meta">Alphaville, SP · 420m² · 2024</p>
+        <div class="project-card__footer">
+          <span class="project-card__status project-card__status--done">Concluído</span>
+          <span class="project-card__access">Ver projeto</span>
+        </div>
+      </a>
+
+      <!-- 02 — Concluído -->
+      <a href="/projetos/chale-campos-do-jordao" class="project-card">
+        <div class="project-card__media project-card__media--short">
+          <div class="project-card__media-inner project-card__media-inner--2">
+            <span class="project-card__placeholder">Foto do projeto</span>
+          </div>
+          <div class="project-card__overlay" aria-hidden="true"></div>
+          <span class="project-card__num" aria-hidden="true">02</span>
+          <div class="project-card__tag">Airbnb</div>
+        </div>
+        <h3 class="project-card__title">Chalé Campos do Jordão</h3>
+        <p class="project-card__meta">Campos do Jordão, SP · Temporada · 2023</p>
+        <div class="project-card__footer">
+          <span class="project-card__status project-card__status--done">Concluído</span>
+          <span class="project-card__access">Ver projeto</span>
+        </div>
+      </a>
+
+      <!-- 03 — Em andamento -->
+      <a href="/projetos/comercial-granja-viana" class="project-card">
+        <div class="project-card__media project-card__media--tall">
+          <div class="project-card__media-inner project-card__media-inner--3">
+            <span class="project-card__placeholder">Foto do projeto</span>
+          </div>
+          <div class="project-card__overlay" aria-hidden="true"></div>
+          <span class="project-card__num" aria-hidden="true">03</span>
+          <div class="project-card__tag">Comercial</div>
+        </div>
+        <h3 class="project-card__title">Comercial Granja Viana</h3>
+        <p class="project-card__meta">Cotia, SP · 280m² · 2023</p>
+        <div class="project-card__footer">
+          <span class="project-card__status project-card__status--progress">Em andamento</span>
+          <span class="project-card__access">Ver projeto</span>
+        </div>
+      </a>
+
+      <!-- 04 — Concluído -->
+      <a href="/projetos/condominio-hills" class="project-card">
+        <div class="project-card__media">
+          <div class="project-card__media-inner project-card__media-inner--4">
+            <span class="project-card__placeholder">Foto do projeto</span>
+          </div>
+          <div class="project-card__overlay" aria-hidden="true"></div>
+          <span class="project-card__num" aria-hidden="true">04</span>
+          <div class="project-card__tag">Incorporação</div>
+        </div>
+        <h3 class="project-card__title">Condomínio Hills</h3>
+        <p class="project-card__meta">Vila Mariana, SP · 12 unid. · 2022</p>
+        <div class="project-card__footer">
+          <span class="project-card__status project-card__status--done">Concluído</span>
+          <span class="project-card__access">Ver projeto</span>
+        </div>
+      </a>
+
+      <!-- 05 — Em breve -->
+      <a href="/projetos/casa-temporada-ibiuna" class="project-card project-card--soon">
+        <div class="project-card__media project-card__media--mid">
+          <div class="project-card__media-inner project-card__media-inner--5">
+            <span class="project-card__placeholder">Foto do projeto</span>
+          </div>
+          <div class="project-card__overlay" aria-hidden="true"></div>
+          <span class="project-card__num" aria-hidden="true">05</span>
+          <div class="project-card__tag">Airbnb</div>
+        </div>
+        <h3 class="project-card__title">Casa de Temporada Ibiúna</h3>
+        <p class="project-card__meta">Ibiúna, SP · Alta ocupação · 2024</p>
+        <div class="project-card__footer">
+          <span class="project-card__status project-card__status--soon">Em breve</span>
+          <span class="project-card__access">Em breve</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- SERVIÇOS -->
+<section class="section section--alt-2" id="servicos">
+  <div class="section__label">Especialidades</div>
+  <h2 class="section__title section__title--flush">O que <em>fazemos.</em></h2>
+  <div class="services__grid">
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">01</span>
+      <h3 class="service-card__title">Construção Residencial</h3>
+      <p class="service-card__desc">Casas, sobrados e condomínios construídos com materiais de primeira linha, equipe própria e cronograma rigoroso. Do alicerce à entrega das chaves.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">02</span>
+      <h3 class="service-card__title">Empreitada Geral</h3>
+      <p class="service-card__desc">Assumimos obras como empreiteiros gerais para construtoras e incorporadoras. Gestão completa de mão de obra, materiais e subcontratados.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">03</span>
+      <h3 class="service-card__title">Venda de Imóveis</h3>
+      <p class="service-card__desc">Comercializamos imóveis próprios e de parceiros com consultoria completa para compradores e investidores. Transparência do primeiro ao último passo.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">04</span>
+      <h3 class="service-card__title">Gestão Airbnb</h3>
+      <p class="service-card__desc">Administramos seu imóvel como se fosse nosso. Anúncio, precificação dinâmica, check-in, limpeza e manutenção — zero preocupação para você.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">05</span>
+      <h3 class="service-card__title">Reformas e Upgrades</h3>
+      <p class="service-card__desc">Reformas estruturais e de acabamento para valorizar o imóvel antes da venda ou locação. Projeto, execução e entrega sem dor de cabeça.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+    <div class="service-card">
+      <div class="service-card__accent"></div>
+      <span class="service-card__num" aria-hidden="true">06</span>
+      <h3 class="service-card__title">Consultoria de Investimento</h3>
+      <p class="service-card__desc">Ajudamos investidores a identificar terrenos e imóveis com potencial, calcular retorno e executar a estratégia de construção e locação.</p>
+      <span class="service-card__arrow" aria-hidden="true">↗</span>
+    </div>
+  </div>
+</section>
+
+<!-- AIRBNB -->
+<section class="airbnb" id="airbnb">
+  <div class="airbnb__inner">
+    <div class="airbnb__text">
+      <div class="section__label" style="margin-bottom:28px;">Gestão de Temporada</div>
+      <div class="airbnb__quote-mark">"</div>
+      <p class="airbnb__claim">Seu imóvel trabalhando por você — <em>todos os dias.</em></p>
+      <p class="airbnb__body">A Invest Hauser cuida de tudo para que seu imóvel gere renda máxima no Airbnb, sem que você precise mover um dedo. Da publicação do anúncio até a limpeza pós-hóspede.</p>
+      <ul class="airbnb__features">
+        <li class="airbnb__feature">Fotografia profissional e anúncio otimizado</li>
+        <li class="airbnb__feature">Precificação dinâmica com base na demanda</li>
+        <li class="airbnb__feature">Check-in automatizado e suporte 24h ao hóspede</li>
+        <li class="airbnb__feature">Limpeza, manutenção e reposição de itens</li>
+        <li class="airbnb__feature">Relatório mensal de performance e repasse</li>
+      </ul>
+      <a href="#cta" class="btn btn--primary"><span class="btn--primary__label">Quero gerir meu imóvel</span></a>
+    </div>
+    <div class="airbnb__visual">
+      <div class="airbnb__media">
+        <div class="airbnb__media-inner">
+          <span class="airbnb__media-placeholder">Foto do imóvel</span>
+        </div>
+        <div class="airbnb__media-tag">
+          <div class="airbnb__media-tag-label">Taxa de ocupação média</div>
+          <div class="airbnb__media-tag-value"><span class="js-count" data-target="87">0</span>%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <h2 class="cta__title">Vamos construir<br><em>juntos?</em></h2>
+  <div class="cta__body">
+    <p class="cta__desc">Conte seu projeto ou imóvel. Nossa equipe responde em até 24 horas com uma proposta honesta e detalhada.</p>
+    <a href="https://wa.me/5511000000000" class="btn btn--primary"><span class="btn--primary__label">Falar pelo WhatsApp</span></a>
+    <a href="tel:+5511000000000" class="cta__link-ghost">Ligar agora</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer__logo">Invest.Hauser</div>
+  <nav aria-label="Rodapé">
+    <ul class="footer__links">
+      <li><a href="#sobre"    class="footer__link">Empresa</a></li>
+      <li><a href="#projetos" class="footer__link">Projetos</a></li>
+      <li><a href="#servicos" class="footer__link">Serviços</a></li>
+      <li><a href="#airbnb"   class="footer__link">Airbnb</a></li>
+      <li><a href="#cta"      class="footer__link">Contato</a></li>
+    </ul>
   </nav>
-
-  <!-- ============================================================
-       HERO — Canvas + sequência de frames (Cloudinary)
-       ─────────────────────────────────────────────────────────────
-       Técnica: extrai ~60 frames do vídeo via URL do Cloudinary,
-       precarrega todos como imagens, e desenha no canvas conforme
-       o scroll. Zero travamento — é o método que a Apple usa.
-
-       Para trocar o vídeo, basta alterar CLOUD_ID no JS.
-  ============================================================ -->
-  <section class="hero" id="inicio" aria-label="Seção principal">
-
-    <div class="hero__media">
-      <!-- Poster estático — aparece enquanto os frames carregam -->
-      <img src="https://res.cloudinary.com/db4pwya16/video/upload/so_0,w_1920,q_auto,f_jpg/hero_s1kf6k.jpg"
-           alt="" class="hero__poster" id="js-hero-poster"
-           fetchpriority="high">
-
-      <!-- Canvas — recebe os frames desenhados via JS -->
-      <canvas id="js-hero-canvas" class="hero__canvas"></canvas>
-
-      <!-- Barra de progresso do preload dos frames -->
-      <div class="hero__preload" id="js-hero-preload">
-        <div class="hero__preload-bar" id="js-hero-preload-bar"></div>
-      </div>
-
-      <!-- Vídeo oculto — usado apenas pra pegar a duração -->
-      <video id="js-hero-video" muted playsinline preload="metadata" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none">
-        <source src="https://res.cloudinary.com/db4pwya16/video/upload/q_auto/hero_s1kf6k.mp4" type="video/mp4">
-      </video>
-    </div>
-
-    <div class="hero__overlay" aria-hidden="true"></div>
-
-    <div class="hero__content">
-      <p class="hero__eyebrow">Construção &amp; Incorporação</p>
-      <h1 class="hero__title">
-        Construção com<br>
-        precisão. Espaços<br>
-        com propósito.
-      </h1>
-    </div>
-
-    <div class="hero__scroll" aria-hidden="true">
-      <span class="hero__scroll-label">Explorar</span>
-      <div class="hero__scroll-line"></div>
-    </div>
-
-  </section>
-
-  <section class="specialists" id="sobre" aria-labelledby="specialists-heading">
-    <div class="specialists__copy">
-      <p class="specialists__label reveal">Especialistas em construção</p>
-      <p class="specialists__text reveal" id="specialists-heading">
-        Desenvolvemos e entregamos
-        <strong>empreendimentos de alto padrão</strong>
-        para quem constrói com visão. Cada projeto reflete nosso
-        compromisso com precisão, qualidade e parceria.
-      </p>
-    </div>
-    <div class="specialists__media reveal">
-      <!-- Substituir: <img src="fotos/intro.jpg" alt="Obra Hauser">  ·  4:3 -->
-      <div class="placeholder placeholder--image">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
-          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
-          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.22)" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="placeholder__label">Imagem — Introdução</span>
-        <span class="placeholder__sublabel">4:3 · AVIF / WebP / JPG</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="about" aria-labelledby="about-heading">
-    <div class="about__copy">
-      <p class="about__label reveal">Sobre a Invest Hauser</p>
-      <h2 class="about__title reveal" id="about-heading">
-        Trazemos a arquitetura à vida através de
-        técnica e inovação.
-      </h2>
-      <p class="about__body reveal">
-        Confiada por incorporadores e arquitetos que exigem precisão, beleza e cuidado em cada etapa. Da concepção à entrega das chaves, somos o parceiro técnico que garante que sua visão seja executada com integridade e excelência.
-      </p>
-      <a href="#sobre" class="about__link reveal">
-        Quem somos
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-    </div>
-    <div class="about__image reveal">
-      <!-- Substituir: <img src="fotos/equipe.jpg" alt="Equipe Invest Hauser">  ·  3:4 -->
-      <div class="placeholder placeholder--image" style="height:100%;min-height:480px">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
-          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.22)" stroke-width="1.5"/>
-          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.22)" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="placeholder__label">Imagem — Sobre (vertical)</span>
-        <span class="placeholder__sublabel">3:4 · retrato ou ambiente</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="services" id="servicos" aria-labelledby="services-heading">
-    <div class="services__header">
-      <div class="services__heading">
-        <p class="services__label reveal">Coleção de serviços</p>
-        <h2 class="services__title reveal" id="services-heading">
-          Nossa <strong>coleção de serviços</strong> é definida por
-          excelência técnica e qualidade duradoura.
-        </h2>
-      </div>
-      <a href="#servicos" class="services__overview-link reveal">
-        Ver todos os serviços
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-    </div>
-    <div class="services__grid">
-
-      <a href="#servicos" class="service-card" aria-label="Construção Civil">
-        <div class="service-card__media">
-          <!-- Substituir: <img src="fotos/construcao-civil.jpg" alt="Construção Civil"> -->
-          <div class="placeholder placeholder--image">
-            <span class="placeholder__label">Img — Construção Civil</span>
-          </div>
-        </div>
-        <div class="service-card__overlay" aria-hidden="true"></div>
-        <div class="service-card__content"><h3 class="service-card__title">Construção Civil</h3></div>
-      </a>
-
-      <a href="#servicos" class="service-card" aria-label="Retrofit e Reforma">
-        <div class="service-card__media">
-          <!-- Substituir: <img src="fotos/retrofit.jpg" alt="Retrofit"> -->
-          <div class="placeholder placeholder--image">
-            <span class="placeholder__label">Img — Retrofit &amp; Reforma</span>
-          </div>
-        </div>
-        <div class="service-card__overlay" aria-hidden="true"></div>
-        <div class="service-card__content"><h3 class="service-card__title">Retrofit &amp; Reforma</h3></div>
-      </a>
-
-      <a href="#servicos" class="service-card" aria-label="Estruturas">
-        <div class="service-card__media">
-          <!-- Substituir: <img src="fotos/estruturas.jpg" alt="Estruturas"> -->
-          <div class="placeholder placeholder--image">
-            <span class="placeholder__label">Img — Estruturas</span>
-          </div>
-        </div>
-        <div class="service-card__overlay" aria-hidden="true"></div>
-        <div class="service-card__content"><h3 class="service-card__title">Estruturas</h3></div>
-      </a>
-
-      <a href="#servicos" class="service-card" aria-label="Acabamentos Premium">
-        <div class="service-card__media">
-          <!-- Substituir: <img src="fotos/acabamentos.jpg" alt="Acabamentos"> -->
-          <div class="placeholder placeholder--image">
-            <span class="placeholder__label">Img — Acabamentos Premium</span>
-          </div>
-        </div>
-        <div class="service-card__overlay" aria-hidden="true"></div>
-        <div class="service-card__content"><h3 class="service-card__title">Acabamentos Premium</h3></div>
-      </a>
-
-    </div>
-  </section>
-
-  <section class="showroom" aria-labelledby="showroom-heading">
-    <div class="showroom__info">
-      <p class="showroom__label reveal">Onde a precisão encontra a criatividade.</p>
-      <h2 class="showroom__title reveal" id="showroom-heading">Escritório &amp;<br>Atendimento</h2>
-      <p class="showroom__address-label">Endereço</p>
-      <address class="showroom__address reveal">
-        <br>
-        Curitiba · Uberaba · Brasil
-      </address>
-      <a href="#contato" class="showroom__link reveal">
-        Agendar visita
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-    </div>
-    <div class="showroom__media reveal">
-      <!--
-      Para usar Cloudinary aqui também, copie o padrão do hero:
-      <video autoplay muted loop playsinline
-             poster="https://res.cloudinary.com/db4pwya16/video/upload/so_0/SEU_PUBLIC_ID.jpg">
-        <source src="https://res.cloudinary.com/db4pwya16/video/upload/f_auto,q_auto/SEU_PUBLIC_ID.mp4" type="video/mp4">
-      </video>
-      -->
-      <div class="placeholder placeholder--video">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <rect x="6" y="10" width="36" height="28" rx="3" stroke="rgba(50,120,200,0.55)" stroke-width="1.5"/>
-          <path d="M20 18l10 6-10 6V18z" stroke="rgba(50,120,200,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="placeholder__label">Vídeo — Escritório / Showroom</span>
-        <span class="placeholder__sublabel">4:3 · MP4 · loop</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="projects" id="projetos" aria-labelledby="projects-heading">
-    <div class="projects__header">
-      <div class="projects__heading">
-        <p class="projects__label reveal">Projetos em destaque</p>
-        <h2 class="projects__title reveal" id="projects-heading">
-          Cada projeto conta<br>uma história de precisão.
-        </h2>
-      </div>
-      <a href="#projetos" class="projects__view-link reveal">
-        Ver todos os projetos
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-    </div>
-    <div class="projects__grid">
-
-      <a href="#projetos" class="project-card" aria-label="Projeto 01">
-        <div class="project-card__media">
-          <div class="placeholder placeholder--image"><span class="placeholder__label">Img — Projeto 01</span></div>
-        </div>
-        <div class="project-card__overlay" aria-hidden="true"></div>
-        <div class="project-card__content">
-          <div class="project-card__tags">
-            <span class="project-card__tag">Residencial</span>
-            <span class="project-card__tag">Alto Padrão</span>
-          </div>
-          <h3 class="project-card__title">Nome do Projeto 01</h3>
-        </div>
-      </a>
-
-      <a href="#projetos" class="project-card" aria-label="Projeto 02">
-        <div class="project-card__media">
-          <div class="placeholder placeholder--image"><span class="placeholder__label">Img — Projeto 02</span></div>
-        </div>
-        <div class="project-card__overlay" aria-hidden="true"></div>
-        <div class="project-card__content">
-          <div class="project-card__tags"><span class="project-card__tag">Comercial</span></div>
-          <h3 class="project-card__title">Nome do Projeto 02</h3>
-        </div>
-      </a>
-
-      <a href="#projetos" class="project-card" aria-label="Projeto 03">
-        <div class="project-card__media">
-          <div class="placeholder placeholder--image"><span class="placeholder__label">Img — Projeto 03</span></div>
-        </div>
-        <div class="project-card__overlay" aria-hidden="true"></div>
-        <div class="project-card__content">
-          <div class="project-card__tags"><span class="project-card__tag">Retrofit</span></div>
-          <h3 class="project-card__title">Nome do Projeto 03</h3>
-        </div>
-      </a>
-
-      <a href="#projetos" class="project-card" aria-label="Projeto 04">
-        <div class="project-card__media">
-          <div class="placeholder placeholder--image"><span class="placeholder__label">Img — Projeto 04</span></div>
-        </div>
-        <div class="project-card__overlay" aria-hidden="true"></div>
-        <div class="project-card__content">
-          <div class="project-card__tags"><span class="project-card__tag">Estrutural</span></div>
-          <h3 class="project-card__title">Nome do Projeto 04</h3>
-        </div>
-      </a>
-
-    </div>
-  </section>
-
-  <div class="mood" aria-hidden="true">
-    <div class="mood__item">
-      <div class="placeholder placeholder--image" style="height:100%;min-height:520px">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none">
-          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
-        </svg>
-        <span class="placeholder__label">Imagem mood 01</span>
-        <span class="placeholder__sublabel">3:4 · detalhe de obra ou material</span>
-      </div>
-    </div>
-    <div class="mood__item">
-      <div class="placeholder placeholder--image" style="height:100%;min-height:520px">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none">
-          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
-        </svg>
-        <span class="placeholder__label">Imagem mood 02</span>
-        <span class="placeholder__sublabel">3:4 · detalhe de obra ou material</span>
-      </div>
-    </div>
+  <div class="footer__copy">
+    CRECI-SP 000000-J<br>
+    © 2026 Invest Hauser · Curitiba
   </div>
+</footer>
 
-  <section class="testimonials" aria-label="Depoimentos de clientes">
-    <p class="testimonials__counter" id="js-counter" aria-live="polite">01 / 03</p>
-    <div class="testimonials__track" id="js-track">
+<script>
+gsap.registerPlugin(ScrollTrigger);
 
-      <div class="testimonials__slide testimonials__slide--active">
-        <blockquote class="testimonials__quote">
-          "Serviço impecável do início ao fim. A Invest Hauser entregou nosso empreendimento no prazo e com acabamento muito acima do esperado."
-        </blockquote>
-        <div class="testimonials__author">
-          <div class="testimonials__avatar">
-            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
-              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
-            </div>
-          </div>
-          <div>
-            <p class="testimonials__name">Ricardo Almeida</p>
-            <p class="testimonials__role">Incorporador · Grupo Almeida</p>
-          </div>
-        </div>
-      </div>
+/* BADGE MAGNÉTICO */
+const magBadge = document.getElementById('magBadge');
+const aboutSec = document.getElementById('sobre');
+let badgeX = window.innerWidth / 2, badgeY = window.innerHeight / 2;
+let targetX = badgeX, targetY = badgeY, badgeVisible = false;
 
-      <div class="testimonials__slide">
-        <blockquote class="testimonials__quote">
-          "A capacidade técnica e o comprometimento da equipe nos deram total tranquilidade durante toda a obra. Parceria que recomendamos."
-        </blockquote>
-        <div class="testimonials__author">
-          <div class="testimonials__avatar">
-            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
-              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
-            </div>
-          </div>
-          <div>
-            <p class="testimonials__name">Fernanda Costa</p>
-            <p class="testimonials__role">Arquiteta · FC Arquitetura</p>
-          </div>
-        </div>
-      </div>
+document.addEventListener('mousemove', e => {
+  targetX = e.clientX; targetY = e.clientY;
+  const rect = aboutSec.getBoundingClientRect();
+  const inside = e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right;
+  if (inside && !badgeVisible) { magBadge.classList.add('mag-badge--visible'); badgeVisible = true; }
+  else if (!inside && badgeVisible) { magBadge.classList.remove('mag-badge--visible'); badgeVisible = false; }
+});
+(function animBadge() {
+  badgeX += (targetX - badgeX) * 0.08; badgeY += (targetY - badgeY) * 0.08;
+  magBadge.style.left = badgeX + 'px'; magBadge.style.top = badgeY + 'px';
+  requestAnimationFrame(animBadge);
+})();
 
-      <div class="testimonials__slide">
-        <blockquote class="testimonials__quote">
-          "Parceria sólida, comunicação exemplar e resultado de altíssimo nível. Recomendo sem reservas para qualquer projeto de porte."
-        </blockquote>
-        <div class="testimonials__author">
-          <div class="testimonials__avatar">
-            <div class="placeholder placeholder--image" style="width:88px;height:88px;min-height:unset;border-radius:50%">
-              <span style="font-size:9px;color:var(--color-text-muted)">Foto</span>
-            </div>
-          </div>
-          <div>
-            <p class="testimonials__name">Paulo Ornelas</p>
-            <p class="testimonials__role">Proprietário</p>
-          </div>
-        </div>
-      </div>
+/* CURSOR */
+const cursorDot = document.getElementById('cursorDot'), cursorRing = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursorDot.style.left = mx + 'px'; cursorDot.style.top = my + 'px'; });
+(function animRing() { rx += (mx - rx) * 0.1; ry += (my - ry) * 0.1; cursorRing.style.left = rx + 'px'; cursorRing.style.top = ry + 'px'; requestAnimationFrame(animRing); })();
 
-    </div>
+/* LOADER */
+const pctEl = document.getElementById('loaderPct'), fillEl = document.getElementById('loaderFill');
+let p = 0, done = false;
+const loaderInterval = setInterval(() => {
+  p = Math.min(p + Math.random() * 9 + 2, 99);
+  pctEl.textContent = Math.floor(p); fillEl.style.width = p + '%';
+  if (p >= 99 && !done) {
+    done = true; clearInterval(loaderInterval);
+    setTimeout(() => {
+      pctEl.textContent = '100'; fillEl.style.width = '100%';
+      setTimeout(() => { document.getElementById('loader').classList.add('loader--hidden'); boot(); }, 400);
+    }, 200);
+  }
+}, 80);
 
-    <div class="testimonials__controls">
-      <button class="testimonials__btn" id="js-prev" aria-label="Depoimento anterior">
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M13 5H1M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <div class="testimonials__dots" id="js-dots" role="tablist" aria-label="Selecionar depoimento">
-        <div class="testimonials__dot testimonials__dot--active" data-index="0" role="tab" aria-selected="true"  tabindex="0"></div>
-        <div class="testimonials__dot" data-index="1" role="tab" aria-selected="false" tabindex="0"></div>
-        <div class="testimonials__dot" data-index="2" role="tab" aria-selected="false" tabindex="0"></div>
-      </div>
-      <button class="testimonials__btn" id="js-next" aria-label="Próximo depoimento">
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-          <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
-  </section>
+/* SPLIT CHARS */
+function splitChars(el, text) {
+  el.innerHTML = text.split('').map(c => c === ' ' ? '<span class="hero__title-char" style="display:inline-block;width:.25em"> </span>' : `<span class="hero__title-char" style="display:inline-block">${c}</span>`).join('');
+  return el.querySelectorAll('.hero__title-char');
+}
 
-  <section class="cta" id="contato" aria-labelledby="cta-heading">
-    <p class="cta__eyebrow reveal">Onde visão encontra execução</p>
-    <h2 class="cta__title reveal" id="cta-heading">Da obra ao lucro</h2>
-    <p class="cta__subtitle reveal">Conte-nos sobre sua visão. Nós entregamos.</p>
-    <div class="cta__buttons reveal">
-      <a href="#sobre" class="btn btn--primary">
-        Nossa abordagem
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-      </a>
-      <a href="mailto:contato@investhauser.com.br" class="btn btn--outline">
-        Entre em contato
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <path d="M2 8L8 2M8 2H3M8 2V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-      </a>
-    </div>
-  </section>
+/* BOOT */
+function boot() {
+  gsap.from('#nav', { y: -40, opacity: 0, duration: .9, ease: 'power3.out', delay: .1 });
 
-  <footer class="footer">
-    <div class="footer__image">
-      <div class="placeholder placeholder--image" style="width:100%;height:100%;min-height:340px">
-        <svg class="placeholder__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <rect x="6" y="8" width="36" height="32" rx="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
-          <circle cx="16" cy="18" r="3" stroke="rgba(26,28,30,0.18)" stroke-width="1.5"/>
-          <path d="M6 32l10-8 8 6 6-5 12 9" stroke="rgba(26,28,30,0.18)" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="placeholder__label">Imagem footer — fullbleed</span>
-        <span class="placeholder__sublabel">16:7 · panorâmica de obra ou fachada</span>
-      </div>
-      <div class="footer__image-overlay" aria-hidden="true"></div>
-    </div>
-    <div class="footer__bottom">
-      <p class="footer__copy">©2025, Invest Hauser</p>
-      <nav class="footer__social" aria-label="Redes sociais">
-        <a href="#" class="footer__social-link">Instagram</a>
-        <a href="#" class="footer__social-link">LinkedIn</a>
-        <a href="#" class="footer__social-link">YouTube</a>
-      </nav>
-      <nav class="footer__legal" aria-label="Links legais">
-        <a href="#" class="footer__legal-link">Política de privacidade</a>
-        <a href="#" class="footer__legal-link">Termos de uso</a>
-      </nav>
-    </div>
-  </footer>
+  const l1 = splitChars(document.getElementById('titleL1'), 'Da obra');
+  const l2 = splitChars(document.getElementById('titleL2'), 'ao');
+  const l3 = splitChars(document.getElementById('titleL3'), 'lucro.');
+  gsap.from([...l1, ...l2, ...l3], { opacity: 0, y: 30, duration: 1.1, ease: 'power4.out', stagger: { amount: .7, from: 'start' } });
 
-  <script>
-    window.addEventListener('load', function () {
+  gsap.from('#heroEyebrow', { opacity: 0, y: 20, duration: .9, delay: .5,  ease: 'power3.out' });
+  gsap.from('#heroDesc',    { opacity: 0, y: 20, duration: .9, delay: .8,  ease: 'power3.out' });
+  gsap.from('#heroActions', { opacity: 0, y: 20, duration: .9, delay: 1.0, ease: 'power3.out' });
+  gsap.from('#heroScroll',  { opacity: 0,         duration: .8, delay: 1.6, ease: 'power3.out' });
 
-      gsap.registerPlugin(ScrollTrigger);
+  gsap.to('.hero__overlay', { yPercent: 15, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
 
-      /* LOADER */
-      var loader    = document.getElementById('js-loader');
-      var loaderBar = document.getElementById('js-loader-bar');
+  gsap.from('#aboutVisual', { x: -70, opacity: 0, duration: 1.2, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#sobre', start: 'top 75%', toggleActions: 'play none none none' } });
+  gsap.from('#aboutText > *', { y: 40, opacity: 0, duration: .9, stagger: .12, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#sobre', start: 'top 70%', toggleActions: 'play none none none' } });
 
-      gsap.to(loaderBar, {
-        width: '80px', duration: 0.7, ease: 'power2.out',
-        onComplete: function () {
-          gsap.to(loader, {
-            autoAlpha: 0, duration: 0.5, delay: 0.15, ease: 'power2.inOut',
-            onComplete: function () {
-              loader.style.display = 'none';
-              initAnimations();
-            }
-          });
-        }
-      });
+  document.querySelectorAll('.section__title, .section__label').forEach(el => {
+    if (el.closest('#aboutText')) return;
+    gsap.from(el, { y: 36, opacity: 0, duration: .9, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' } });
+  });
 
-      /* CURSOR */
-      var cursor = document.getElementById('js-cursor');
-      var mouseX = 0, mouseY = 0, posX = 0, posY = 0;
+  document.querySelectorAll('.js-count').forEach(el => {
+    const target = +el.dataset.target, obj = { n: 0 };
+    gsap.to(obj, { n: target, duration: 2.2, ease: 'power2.out', onUpdate: () => { el.textContent = Math.floor(obj.n); }, scrollTrigger: { trigger: el.closest('section') || el, start: 'top 70%', toggleActions: 'play none none none' } });
+  });
 
-      document.addEventListener('mousemove', function (e) { mouseX = e.clientX; mouseY = e.clientY; });
+  gsap.from('.numbers__item', { y: 50, opacity: 0, duration: .85, stagger: .1, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#numeros', start: 'top 72%', toggleActions: 'play none none none' } });
 
-      (function animateCursor() {
-        posX += (mouseX - posX) * 0.12;
-        posY += (mouseY - posY) * 0.12;
-        cursor.style.left = posX + 'px';
-        cursor.style.top  = posY + 'px';
-        requestAnimationFrame(animateCursor);
-      })();
+  const track = document.getElementById('projectsTrack');
+  const trackW = track.scrollWidth, vw = window.innerWidth;
+  gsap.to(track, { x: -(trackW - vw + 128), ease: 'none', scrollTrigger: { trigger: '.projects', start: 'top top', end: () => `+=${trackW - vw + 200}`, pin: true, scrub: 1, anticipatePin: 1 } });
+  gsap.from('.project-card', { y: 60, opacity: 0, duration: 1, stagger: .14, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '.projects', start: 'top 80%', toggleActions: 'play none none none' } });
 
-      document.querySelectorAll('a, button, .service-card, .project-card, .testimonials__dot').forEach(function (el) {
-        el.addEventListener('mouseenter', function () { cursor.classList.add('cursor--hover'); });
-        el.addEventListener('mouseleave', function () { cursor.classList.remove('cursor--hover'); });
-      });
+  gsap.from('.service-card', { y: 50, opacity: 0, duration: .8, stagger: .07, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#servicos', start: 'top 75%', toggleActions: 'play none none none' } });
 
-      /* NAV ISLAND */
-      var navIsland = document.getElementById('js-nav-island');
-      var navLinks  = document.querySelectorAll('.nav__link');
+  gsap.from('.airbnb__text > *', { y: 40, opacity: 0, duration: .9, stagger: .1, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#airbnb', start: 'top 70%', toggleActions: 'play none none none' } });
+  gsap.from('.airbnb__visual',   { x: 60, opacity: 0, duration: 1.1, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#airbnb', start: 'top 70%', toggleActions: 'play none none none' } });
+  ScrollTrigger.create({ trigger: '#airbnb', start: 'top top', end: '+=70%', pin: true, pinSpacing: true });
 
-      window.addEventListener('scroll', function () {
-        var atBottom = window.scrollY >= (document.body.scrollHeight - window.innerHeight - 60);
-        navIsland.classList.toggle('nav__island--bottom', atBottom);
-      }, { passive: true });
+  gsap.from('.cta__title',   { x: -60, opacity: 0, duration: 1,   ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#cta', start: 'top 78%', toggleActions: 'play none none none' } });
+  gsap.from('.cta__body > *',{ x:  60, opacity: 0, duration: .9, stagger: .1, ease: 'power3.out', immediateRender: false, scrollTrigger: { trigger: '#cta', start: 'top 78%', toggleActions: 'play none none none' } });
+}
 
-      var sectionObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          navLinks.forEach(function (link) {
-            link.classList.toggle('nav__link--active', link.getAttribute('href') === '#' + entry.target.id);
-          });
-        });
-      }, { threshold: 0.3 });
-
-      document.querySelectorAll('section[id]').forEach(function (s) { sectionObserver.observe(s); });
-
-      /* SMOOTH SCROLL */
-      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
-        a.addEventListener('click', function (e) {
-          var target = document.querySelector(a.getAttribute('href'));
-          if (!target) return;
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      });
-
-      /* GSAP ANIMATIONS */
-      function initAnimations() {
-        gsap.from('.hero__eyebrow', { y: 20, opacity: 0, duration: 1,   ease: 'power3.out', delay: 0.1 });
-        gsap.from('.hero__title',   { y: 40, opacity: 0, duration: 1.2, ease: 'power3.out', delay: 0.3 });
-        gsap.from('.hero__scroll',  { opacity: 0, duration: 1, delay: 1.2 });
-
-        /* ── SCROLL-DRIVEN CANVAS (frame sequence) ──
-           Extrai ~60 frames do vídeo via Cloudinary e desenha
-           no canvas conforme o scroll. Zero travamento.         */
-        var CLOUD_ID   = 'hero_s1kf6k';
-        var CLOUD_NAME = 'db4pwya16';
-        var TOTAL_FRAMES = 60;
-        var CLOUD_BASE = 'https://res.cloudinary.com/' + CLOUD_NAME + '/video/upload';
-
-        var canvas     = document.getElementById('js-hero-canvas');
-        var ctx        = canvas.getContext('2d');
-        var poster     = document.getElementById('js-hero-poster');
-        var preloadEl  = document.getElementById('js-hero-preload');
-        var preloadBar = document.getElementById('js-hero-preload-bar');
-        var heroVideo  = document.getElementById('js-hero-video');
-
-        var frames      = [];
-        var loadedCount = 0;
-        var currentFrame = 0;
-
-        function buildFrameUrl(secondOffset) {
-          return CLOUD_BASE + '/so_' + secondOffset.toFixed(2) + ',w_1920,q_auto,f_jpg/' + CLOUD_ID + '.jpg';
-        }
-
-        function drawFrame(index) {
-          var img = frames[index];
-          if (!img || !img.complete) return;
-
-          /* Object-fit cover via canvas */
-          var cw = canvas.width;
-          var ch = canvas.height;
-          var scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-          var sw = img.naturalWidth  * scale;
-          var sh = img.naturalHeight * scale;
-          var sx = (cw - sw) / 2;
-          var sy = (ch - sh) / 2;
-          ctx.drawImage(img, sx, sy, sw, sh);
-        }
-
-        function resizeCanvas() {
-          canvas.width  = window.innerWidth;
-          canvas.height = window.innerHeight;
-          drawFrame(currentFrame);
-        }
-
-        function onAllFramesLoaded() {
-          /* Esconde poster, mostra canvas */
-          poster.classList.add('hero__poster--hidden');
-          canvas.classList.add('hero__canvas--ready');
-          preloadEl.classList.add('hero__preload--done');
-
-          resizeCanvas();
-          window.addEventListener('resize', resizeCanvas);
-
-          /* ScrollTrigger mapeia scroll → frame index */
-          gsap.to({ frame: 0 }, {
-            frame: TOTAL_FRAMES - 1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.hero',
-              start: 'top top',
-              end: 'bottom bottom',
-              scrub: 0.3
-            },
-            onUpdate: function () {
-              var f = Math.round(this.targets()[0].frame);
-              if (f !== currentFrame) {
-                currentFrame = f;
-                drawFrame(f);
-              }
-            }
-          });
-        }
-
-        function startFramePreload(duration) {
-          for (var i = 0; i < TOTAL_FRAMES; i++) {
-            var time = (i / (TOTAL_FRAMES - 1)) * duration;
-            var img  = new Image();
-
-            img.onload = img.onerror = function () {
-              loadedCount++;
-              var pct = (loadedCount / TOTAL_FRAMES) * 100;
-              preloadBar.style.width = pct + '%';
-
-              if (loadedCount >= TOTAL_FRAMES) {
-                onAllFramesLoaded();
-              }
-            };
-
-            img.src = buildFrameUrl(time);
-            frames.push(img);
-          }
-        }
-
-        /* Pega a duração do vídeo via metadata, depois inicia o preload */
-        if (heroVideo) {
-          heroVideo.pause();
-
-          function onMeta() {
-            var dur = heroVideo.duration;
-            if (!dur || isNaN(dur)) { dur = 10; } /* fallback 10s */
-            startFramePreload(dur);
-          }
-
-          if (heroVideo.readyState >= 1) {
-            onMeta();
-          } else {
-            heroVideo.addEventListener('loadedmetadata', onMeta);
-            /* Fallback — se metadata demorar mais de 4s, usa 10s */
-            setTimeout(function () {
-              if (loadedCount === 0) { startFramePreload(10); }
-            }, 4000);
-          }
-        }
-
-        gsap.utils.toArray('.reveal').forEach(function (el) {
-          gsap.to(el, {
-            scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
-            y: 0, opacity: 1, duration: 0.9, ease: 'power3.out'
-          });
-        });
-
-        gsap.from('.service-card', {
-          scrollTrigger: { trigger: '.services__grid', start: 'top 80%' },
-          y: 48, opacity: 0, stagger: 0.1, duration: 0.8, ease: 'power3.out'
-        });
-
-        gsap.from('.project-card', {
-          scrollTrigger: { trigger: '.projects__grid', start: 'top 80%' },
-          y: 48, opacity: 0, stagger: 0.1, duration: 0.8, ease: 'power3.out'
-        });
-
-        gsap.utils.toArray('.mood__item img').forEach(function (img) {
-          gsap.to(img, {
-            scrollTrigger: { trigger: img.closest('.mood__item'), scrub: 1.5, start: 'top bottom', end: 'bottom top' },
-            y: '12%', ease: 'none'
-          });
-        });
-
-        gsap.from('.testimonials__counter', {
-          scrollTrigger: { trigger: '.testimonials', start: 'top 80%' },
-          opacity: 0, y: 16, duration: 0.8
-        });
-      }
-
-      /* TESTIMONIALS SLIDER */
-      var slides  = document.querySelectorAll('.testimonials__slide');
-      var dots    = document.querySelectorAll('.testimonials__dot');
-      var counter = document.getElementById('js-counter');
-      var current = 0;
-      var total   = slides.length;
-
-      function goToSlide(index) {
-        slides[current].classList.remove('testimonials__slide--active');
-        dots[current].classList.remove('testimonials__dot--active');
-        dots[current].setAttribute('aria-selected', 'false');
-
-        current = (index + total) % total;
-
-        slides[current].classList.add('testimonials__slide--active');
-        dots[current].classList.add('testimonials__dot--active');
-        dots[current].setAttribute('aria-selected', 'true');
-
-        counter.textContent = String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
-      }
-
-      document.getElementById('js-next').addEventListener('click', function () { goToSlide(current + 1); });
-      document.getElementById('js-prev').addEventListener('click', function () { goToSlide(current - 1); });
-
-      dots.forEach(function (dot, i) {
-        dot.addEventListener('click',   function () { goToSlide(i); });
-        dot.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') goToSlide(i); });
-      });
-
-      setInterval(function () { goToSlide(current + 1); }, 6000);
-    });
-  </script>
-
+ScrollTrigger.create({
+  start: 'top -80', end: 99999,
+  onUpdate: self => { document.getElementById('nav').style.background = self.direction === 1 ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.88)'; }
+});
+</script>
 </body>
 </html>
